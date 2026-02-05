@@ -1,0 +1,506 @@
+# Social Content Approval Portal — Requirements Specification
+
+## 1. Purpose and scope
+
+A lightweight internal platform that manages the end-to-end workflow for social media content creation:
+
+1. **Topic proposal** submission and review/approval by team members.
+2. **Article/post** submission linked to an approved topic and review by a **fixed reviewer pool per page**, using a **claim (pick-up)** model.
+3. **Publishing handoff** once articles are approved, and status tracking through posting.
+4. Transparent tracking of **waiting time**, and **who approved/rejected** with timestamps.
+
+Constraints:
+
+* **Free tools only**
+* Team uses **personal Google accounts** (no Google Workspace)
+* Preferred implementation: **Google Sheets + Google Apps Script Web App + Slack Incoming Webhooks**
+* **Portal-only** (no Google Forms) to avoid confusion, duplicate submissions, and inconsistent resubmission cycles.
+
+---
+
+## 2. Users and roles
+
+All users are managed via an allowlist in the `Users` sheet.
+
+### 2.1 Role definitions
+
+* **Author**: can submit topics; can edit/resubmit topics after objections; can withdraw topics; can submit articles for approved topics; can resubmit articles after changes requested.
+* **Topic Reviewer**: *all allowlisted active users except the author of a given topic* can approve or object to topics.
+* **Article Reviewer**: fixed pool per page (stored in `PageReviewers`) who can claim and review articles.
+* **Publisher**: users responsible for posting content; receive handoff notifications; can mark content as posted.
+* **Super-admin**: can override decisions/statuses; can unassign/reassign claimed articles; can manage allowlist and page configuration.
+
+### 2.2 Account/authentication requirements
+
+* Web app should attempt to detect user email automatically.
+* Because consumer Gmail often does not expose `Session.getActiveUser().getEmail()` reliably, the portal must support a fallback:
+
+  * User manually enters email
+  * Email must match an active allowlisted entry in `Users`
+  * The portal may store the email locally (browser storage) to reduce repeated prompts
+
+---
+
+## 3. Configurable entities
+
+### 3.1 Pages
+
+Three initial pages:
+
+* IDS
+* BAS
+* Science Mate
+
+Page configuration requirements:
+
+* Page names can be changed later without breaking historical records (use stable `page_id`).
+* Each page has configurable topic approval threshold (`required_topic_approvals`).
+* Each page has Slack routing channels for:
+
+  * Topic review notifications
+  * Article review notifications
+  * Publishing handoff notifications
+
+### 3.2 Article reviewer pools
+
+Reviewer pools are defined per page (many reviewers per page).
+
+Initial pool logic:
+
+* IDS: two reviewers
+* BAS: two reviewers
+* Science Mate: same two reviewers as BAS
+
+During testing:
+
+* Admin accounts may be used as temporary reviewers.
+
+The pool must support:
+
+* Enable/disable reviewer (e.g., holidays) without deleting rows
+
+---
+
+## 4. Data model (Google Sheets as database)
+
+All records stored in a single Google Sheet workbook.
+
+### 4.1 Required tabs
+
+* `Users`
+* `Pages`
+* `PageReviewers`
+* `Topics`
+* `TopicReviews` (append-only)
+* `Articles`
+* `ArticleReviews` (append-only)
+* `AuditLog` (append-only)
+
+### 4.2 Users
+
+Fields:
+
+* `email` (primary key, lowercase)
+* `name`
+* `is_active` (Y/N)
+* `is_author` (Y/N)
+* `is_article_reviewer` (Y/N)
+* `is_publisher` (Y/N) (optional for MVP)
+* `is_super_admin` (Y/N)
+* `is_out_of_office` (Y/N)
+* `ooo_until` (datetime, optional)
+
+### 4.3 Pages
+
+Fields:
+
+* `page_id` (IDS/BAS/SM)
+* `page_name`
+* `required_topic_approvals` (default 2)
+* `topic_slack_channel`
+* `article_slack_channel`
+* `publisher_slack_channel`
+
+### 4.4 PageReviewers
+
+Fields:
+
+* `page_id`
+* `reviewer_email`
+* `is_active` (Y/N)
+
+### 4.5 Topics
+
+Fields (minimum):
+
+* `topic_id` (generated: T-YYYY-######)
+* `topic_title`
+* `page_id`
+* `author_email`
+* `status` (Draft / Under Review / Changes Requested / Approved / Discarded)
+* `cycle_no` (integer, starts at 1, increments on resubmit)
+* `submitted_at` (timestamp for current cycle)
+* `last_status_changed_at`
+* `approved_at` (timestamp)
+* `discarded_at` (timestamp)
+* `approvals_required` (copied from Pages)
+* `approvals_count` (computed for current cycle)
+* `has_objection` (Y/N)
+* `approvals_remaining` (computed)
+* `awaiting_minutes` (computed when under review)
+* `notes` (optional but recommended; already added)
+
+### 4.6 TopicReviews (append-only)
+
+Fields:
+
+* `review_id`
+* `topic_id`
+* `cycle_no`
+* `reviewer_email`
+* `decision` (APPROVE / OBJECT)
+* `comment` (required for OBJECT, optional for APPROVE)
+* `decided_at`
+
+### 4.7 Articles
+
+Articles are created only from an approved topic.
+
+Fields (minimum):
+
+* `article_id` (generated: A-YYYY-######)
+* `topic_id`
+* `page_id`
+* `author_email`
+* `status` (Under Review / Changes Requested / Ready to Post / Posted / Rejected)
+* `submitted_at`
+* `last_status_changed_at`
+* `assigned_reviewer_email` (blank until claimed)
+* `claimed_at`
+* `content_doc_url` (required)
+* `image_urls` (optional)
+* `notes_to_reviewer` (optional; already added)
+* `preferred_posting_datetime` (optional; already added)
+* `content_language` (optional; already added)
+* `awaiting_minutes` (computed)
+* `posted_at` (timestamp)
+* `posted_url` (optional)
+
+### 4.8 ArticleReviews (append-only)
+
+Fields:
+
+* `review_id`
+* `article_id`
+* `reviewer_email`
+* `decision` (APPROVE / CHANGES / REJECT)
+* `comment` (required for CHANGES/REJECT, optional for APPROVE)
+* `decided_at`
+
+### 4.9 AuditLog (append-only)
+
+Purpose: immutable audit trail for key events.
+
+Fields:
+
+* `audit_id`
+* `object_type` (TOPIC/ARTICLE)
+* `object_id`
+* `action` (SUBMIT, APPROVE, OBJECT, REQUEST_CHANGES, RESUBMIT, WITHDRAW, CLAIM, UNASSIGN, OVERRIDE, READY_TO_POST, MARK_POSTED, REJECT)
+* `from_status`
+* `to_status`
+* `actor_email`
+* `timestamp`
+* `notes` (override reason, etc.)
+
+Protection requirements:
+
+* Protect `TopicReviews`, `ArticleReviews`, and `AuditLog` so only the script owner can edit.
+
+---
+
+## 5. Workflow requirements
+
+## 5.1 Topic workflow
+
+### 5.1.1 Submission
+
+* Author submits topic via portal:
+
+  * topic title (required)
+  * page (required)
+  * notes (optional)
+* System creates `Topics` row with:
+
+  * status = Under Review
+  * cycle_no = 1
+  * submitted_at = now
+* System logs to `AuditLog`.
+
+### 5.1.2 Review eligibility
+
+* Any active allowlisted user except the topic author can review.
+
+### 5.1.3 Decisions and comments
+
+* APPROVE: optional comment
+* OBJECT: comment required
+
+### 5.1.4 Approval threshold
+
+* A topic is approved when:
+
+  * number of effective approvals for current cycle >= `required_topic_approvals`
+  * and no effective objections exist
+
+### 5.1.5 Objection behavior
+
+* Any objection triggers:
+
+  * status -> Changes Requested
+  * topic returns to author for revision
+
+### 5.1.6 Resubmission behavior
+
+* Resubmission occurs in portal (not by submitting a new topic).
+* On resubmit:
+
+  * cycle_no increments
+  * approvals reset (counted per cycle)
+  * submitted_at resets
+  * status returns to Under Review
+
+### 5.1.7 Withdraw/discard
+
+* Author can withdraw topic (recommended label: “Withdraw”).
+* Withdrawal allowed when topic is not Approved.
+* Status becomes Discarded; action logged.
+
+### 5.1.8 Super-admin override
+
+* Super-admin can:
+
+  * override topic to Approved
+  * send back to Changes Requested
+* Must provide reason recorded in `AuditLog.notes`.
+
+---
+
+## 5.2 Article workflow
+
+### 5.2.1 Creation
+
+* Articles can only be submitted from an **Approved topic** in portal.
+
+### 5.2.2 Article submission form (portal-only)
+
+MVP required inputs:
+
+1. `content_doc_url` (Google Doc link) — required
+2. `image_urls` — optional
+3. “Captions/hashtags/alt text” — optional (stored within notes_to_reviewer or separate field)
+4. `notes_to_reviewer` — optional
+5. “Ready for review” checkbox — required
+
+Additional optional inputs (already added to sheet):
+
+* `preferred_posting_datetime`
+* `content_language` (Thai/English/Bilingual/Other)
+
+### 5.2.3 Assignment model: claim/pick-up
+
+* Articles enter Under Review as **unassigned**.
+* Any active reviewer in the page’s reviewer pool can click **Claim**.
+* Claim sets:
+
+  * assigned_reviewer_email
+  * claimed_at
+
+### 5.2.4 Out-of-office behavior
+
+* If reviewer is marked OOO (is_out_of_office=Y or ooo_until in future):
+
+  * show warning
+  * allow claim (warn but allow)
+
+### 5.2.5 Review decisions
+
+Only assigned reviewer (or super-admin) can decide:
+
+* APPROVE -> Ready to Post
+* CHANGES -> Changes Requested
+* REJECT -> Rejected (rare)
+
+Comment rules:
+
+* APPROVE: comment optional
+* CHANGES/REJECT: comment required
+
+### 5.2.6 Resubmission after changes
+
+* Author revises and resubmits via portal.
+* On resubmit:
+
+  * clear assigned_reviewer_email and claimed_at (confirmed)
+  * status returns to Under Review (unassigned)
+
+### 5.2.7 Super-admin actions
+
+* Unassign/reassign claimed articles
+* Override status with reason logged
+
+---
+
+## 5.3 Publishing workflow
+
+* When article becomes Ready to Post:
+
+  * notify publishing Slack channel
+  * article appears in Publisher Queue
+* Publisher marks Posted:
+
+  * set posted_at
+  * optional posted_url
+* Log to AuditLog.
+
+Publisher emails are optional; Slack-only notifications are acceptable.
+
+---
+
+## 6. UI/UX requirements (portal)
+
+### 6.1 Navigation
+
+Tabs or sections:
+
+* Submit Topic
+* My Topics
+* Topic Review Queue
+* Submit Article (contextual: from an approved topic)
+* Article Review Queue
+* Publisher Queue
+* Admin (super-admin only)
+
+### 6.2 Topic screens
+
+#### Submit Topic
+
+* page selector
+* topic title
+* notes
+
+#### My Topics
+
+* list of topics submitted by user
+* show status, cycle, submitted time, waiting time
+* actions:
+
+  * edit/resubmit (only in Changes Requested)
+  * withdraw
+  * submit article (only if Approved)
+
+#### Topic Review Queue
+
+* list topics Under Review excluding author’s own topics
+* show waiting time, page, author
+* actions:
+
+  * approve (optional comment)
+  * object (comment required)
+  * history
+
+### 6.3 Article screens
+
+#### Article Review Queue
+
+* list articles Under Review
+* unassigned entries show Claim button
+* assigned entries show reviewer + decision buttons for assignee
+* show content_doc_url and assets
+
+#### Publisher Queue
+
+* list Ready to Post
+* action: Mark Posted (+ optional post URL)
+
+### 6.4 Transparency requirements
+
+* Show decision history (who/what/when) for topics and articles.
+* Show waiting time for items currently awaiting review.
+
+---
+
+## 7. Waiting time requirements
+
+For Topics/Articles:
+
+* While status is Under Review:
+
+  * show current waiting time = now - submitted_at
+
+Optional enhancements:
+
+* total wait time across cycles
+* time to first response
+
+---
+
+## 8. Notifications requirements (Slack)
+
+### 8.1 Slack transport
+
+* Use Slack Incoming Webhooks (free)
+* Channels defined per page in `Pages`
+
+### 8.2 Events to notify
+
+Topics:
+
+* topic submitted -> topic review channel
+* topic objected -> author + topic channel
+* topic approved -> author
+
+Articles:
+
+* article submitted -> article review channel
+* article claimed -> article review channel
+* changes requested / rejected -> author
+* ready to post -> publisher channel
+* posted -> optional publisher channel
+
+Mentioning approach:
+
+* Channel notifications with `<!here>` or placeholder mentions (no Slack IDs required initially).
+
+---
+
+## 9. Non-functional requirements
+
+* Free / minimal operating cost
+* Works with personal Google accounts
+* Basic data integrity:
+
+  * protect logs and reviews sheets
+  * append-only history
+* Concurrency safety:
+
+  * ID generation uses locking
+* Extensible:
+
+  * add templates, dashboards, more roles later
+
+---
+
+## 10. Acceptance criteria (MVP)
+
+1. Allowlisted author submits topic in portal -> appears in My Topics and in Topic Review Queue for others.
+2. Two different reviewers approve -> topic becomes Approved.
+3. Any reviewer objects with required comment -> topic becomes Changes Requested.
+4. Author resubmits -> cycle increments and approvals reset.
+5. Author can withdraw a non-approved topic.
+6. Approved topic shows “Submit Article” action.
+7. Author submits article with required doc link -> article enters Under Review unassigned.
+8. Eligible reviewer claims article -> becomes assigned.
+9. Assigned reviewer approves -> status becomes Ready to Post.
+10. Publisher marks posted -> status becomes Posted and timestamps saved.
+11. All actions are logged in AuditLog with actor and timestamp.
