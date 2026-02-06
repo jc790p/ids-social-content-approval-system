@@ -3,1164 +3,1800 @@
 
 <head>
     <base target="_top">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #10b981;
+            --success-hover: #059669;
+            --warning: #f59e0b;
+            --warning-hover: #d97706;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(226, 232, 240, 0.8);
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --glass-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --glass-blur: blur(8px);
+
+            --table-header-bg: #f1f5f9;
+            --table-row-hover: #f8fafc;
+            --tab-active-bg: var(--primary);
+            --tab-active-text: #ffffff;
+            --tab-inactive-bg: #ffffff;
+            --tab-inactive-text: #64748b;
+        }
+
+        [data-theme='dark'] {
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --success: #10b981;
+            --success-hover: #34d399;
+            --warning: #f59e0b;
+            --warning-hover: #fbbf24;
+            --danger: #ef4444;
+            --danger-hover: #f87171;
+
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(51, 65, 85, 0.8);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --glass-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+            --table-header-bg: #1e293b;
+            --table-row-hover: #1e293b;
+            --tab-active-bg: var(--primary);
+            --tab-inactive-bg: #1e293b;
+            --tab-inactive-text: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.2s, border-color 0.2s, color 0.1s, box-shadow 0.2s;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 16px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 24px;
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h2,
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            transition: max-width 0.3s ease;
+        }
+
+        .container.full-width {
+            max-width: 98%;
+        }
+
+        /* Fixed Header Styles */
+        .top-header {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 60px;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 24px;
+            gap: 16px;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        body {
+            padding-top: 84px;
+            /* Account for fixed header */
+        }
+
+        .required-star {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+
+        .optional-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 4px;
+        }
+
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
         }
 
         .row {
             display: flex;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
         }
 
         .card {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 12px;
-            margin: 10px 0;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         input,
         select,
-        textarea,
-        button {
-            padding: 8px;
+        textarea {
+            padding: 10px 14px;
             font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--tab-inactive-bg);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         textarea {
-            width: 520px;
-            max-width: 100%;
-            height: 90px;
+            height: 120px;
+            resize: vertical;
         }
 
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         th,
         td {
-            border-bottom: 1px solid #eee;
-            padding: 8px;
+            padding: 12px 16px;
             text-align: left;
-            vertical-align: top;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
         }
 
         th {
-            background: #fafafa;
+            background-color: var(--table-header-bg);
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: var(--table-row-hover);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            padding: 4px;
+            background: var(--table-header-bg);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            width: fit-content;
         }
 
         .tabs button {
-            margin-right: 6px;
+            border: none;
+            background: transparent;
+            color: var(--tab-inactive-text);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+            margin: 0;
         }
 
-        .hidden {
-            display: none;
+        .tabs button:hover {
+            color: var(--text);
+            background: var(--card-bg);
+        }
+
+        .tabs button.active {
+            background: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        button:not(.tabs button) {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            background: var(--tab-inactive-bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:not(.tabs button):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: var(--table-header-bg);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-icon {
+            padding: 8px !important;
+            border-radius: 8px !important;
+            min-width: 40px;
+        }
+
+        .btn-outline {
+            background: transparent !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text) !important;
+        }
+
+        .btn-primary {
+            background: var(--primary) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover) !important;
+        }
+
+        .btn-success,
+        .btn-approve {
+            background: var(--success) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .btn-success:hover,
+        .btn-approve:hover {
+            background: var(--success-hover) !important;
+        }
+
+        .btn-warning,
+        .btn-edit {
+            background: var(--warning) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .btn-warning:hover,
+        .btn-edit:hover {
+            background: var(--warning-hover) !important;
+        }
+
+        .btn-danger,
+        .btn-reject,
+        .btn-discard {
+            background: var(--danger) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .btn-danger:hover,
+        .btn-reject:hover,
+        .btn-discard:hover {
+            background: var(--danger-hover) !important;
         }
 
         .pill {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: #f0f0f0;
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--table-header-bg);
+            color: var(--text-muted);
+        }
+
+        .pill.ok {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+        }
+
+        .pill.warn {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+        }
+
+        .pill.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+        }
+
+        .action-link {
+            color: var(--primary);
+            font-weight: 500;
+            text-decoration: none;
             font-size: 12px;
+            cursor: pointer;
+            transition: color 0.2s;
         }
 
-        .ok {
-            background: #e9ffe8;
+        .action-link:hover {
+            text-decoration: underline;
+            color: var(--primary-hover);
         }
 
-        .warn {
-            background: #fff7e0;
+        .hidden {
+            display: none !important;
         }
 
         .mono {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-size: 12px;
-            white-space: pre-wrap;
+            background: var(--table-header-bg);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
         }
 
-        .btn-discard {
-            background: #fff0f0;
-            color: #c00;
-            border: 1px solid #ecc;
+        /* Dark mode toggle */
+        .theme-toggle {
             cursor: pointer;
+            background: var(--card-bg) !important;
+            border: 1px solid var(--card-border) !important;
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }
 
-        .btn-discard:hover {
-            background: #ffe0e0;
-            border-color: #d00;
+        /* Loading */
+        #sa_msg,
+        #submitTopicMsg,
+        #authStatus {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--primary);
+            margin-left: 10px;
+        }
+
+        /* History */
+        #amHistoryArea {
+            margin-top: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.02);
         }
 
         .history-item {
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
         }
 
         .history-date {
             font-size: 11px;
-            color: #888;
+            color: var(--text-muted);
         }
 
         .history-actor {
-            font-weight: bold;
+            font-weight: 600;
             font-size: 13px;
+            margin-bottom: 4px;
+            display: block;
         }
 
-        #historyContent {
-            max-height: 400px;
+        /* Modal Backdrop */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            padding-top: 50px;
             overflow-y: auto;
         }
     </style>
 </head>
 
-<body>
-    <h2>Social Content Approval Portal</h2>
-
-    <div class="card" id="authCard">
-        <div id="authStatus">Checking access…</div>
-        <div id="emailPrompt" class="hidden">
-            <p>Your Google account email could not be detected (common with personal accounts). Enter your email (must
-                exist in the Users sheet):</p>
-            <input id="emailInput" placeholder="you@gmail.com" />
-            <button onclick="setEmail()">Continue</button>
-        </div>
-        <div style="margin-top:8px;">
-            <button onclick="runDebug()">Diagnostics</button>
-        </div>
-        <div id="debugOut" class="mono"
-            style="margin-top:10px; min-height:60px; border-top:1px dashed #eee; padding-top:8px;"></div>
+<div class="top-header">
+    <div id="userInfoHeader" class="header-item hidden">
+        <span id="headerEmail" style="font-weight:600;"></span>
+        <button onclick="logout()" class="btn-outline" style="padding:4px 8px; font-size:11px;">Logout</button>
     </div>
-
-    <div class="tabs hidden" id="tabs">
-        <button id="tabSubmitTopic" onclick="showTab('submitTopic')">Submit Topic</button>
-        <button id="tabMyTopics" onclick="showTab('myTopics')">My Topics</button>
-        <button id="tabTopicQueue" onclick="showTab('topicQueue')">Topic Review Queue</button>
-        <button id="tabArticleQueue" onclick="showTab('articleQueue')">Article Review Queue</button>
-        <button id="tabPublisherQueue" onclick="showTab('publisherQueue')">Publisher Queue</button>
-        <button id="tabAdmin" class="hidden" onclick="showTab('adminPanel')">Admin</button>
+    <div class="header-item">
+        <button id="widthToggle" class="btn-outline"
+            style="padding:4px 12px; font-size:12px; display:flex; align-items:center; gap:6px;" title="Toggle Width">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+            <span id="widthText">Standard Width</span>
+        </button>
     </div>
+    <div class="header-item">
+        <button id="themeToggle" class="btn-icon" title="Toggle Theme"></button>
+    </div>
+</div>
 
-    <div id="submitTopic" class="card hidden">
-        <h3>Submit Topic</h3>
-        <div class="row">
-            <div>
-                <div>Page</div>
-                <select id="pageSelect"></select>
+<div id="mainContainer" class="container">
+    <header>
+        <h1>Social Approval Portal</h1>
+    </header>
+
+    <div id="authCard" class="card">
+        <p id="authStatus"
+            style="font-weight:600; font-size:14px; color:var(--text-muted); display:flex; align-items:center; gap:8px;">
+            <span id="statusText">Checking access...</span>
+        </p>
+        <div id="emailPrompt" class="hidden" style="margin-top:16px;">
+            <p style="font-size:14px; margin-bottom:12px;">Please sign in with your allowlisted email:</p>
+            <div class="row">
+                <input type="email" id="emailInput" placeholder="your.name@example.com" style="flex:1;" />
+                <button class="btn-primary" onclick="setEmail()">Sign In</button>
             </div>
-            <div style="flex:1; min-width:260px;">
-                <div>Topic title</div>
-                <input id="topicTitle" style="width:520px; max-width:100%;"
-                    placeholder="e.g., How to request NQI services..." />
-            </div>
-        </div>
-        <div style="margin-top:10px;">
-            <div>Google Doc URL (optional)</div>
-            <input id="topicDocUrl" style="width:520px; max-width:100%;" placeholder="https://docs.google.com/..." />
-        </div>
-        <div style="margin-top:10px;">
-            <div>Notes (optional)</div>
-            <textarea id="topicNotes" placeholder="Optional outline or key points…"></textarea>
-        </div>
-        <div style="margin-top:10px;">
-            <button onclick="submitTopic()">Submit</button>
-            <span id="submitTopicMsg"></span>
         </div>
     </div>
 
-    <div id="myTopics" class="card hidden">
-        <h3>My Topics</h3>
-        <div id="myTopicsTable"></div>
+    <!-- Diagnostic Panel -->
+    <div id="diagnosticPanel" class="card"
+        style="margin-top:16px; background:var(--card-bg); border:1px solid var(--card-border);">
+        <details open>
+            <summary style="cursor:pointer; font-weight:600; font-size:14px; margin-bottom:8px;">🔍 Bootstrap
+                Diagnostics</summary>
+            <div id="diagnosticLog"
+                style="font-family:monospace; font-size:11px; max-height:300px; overflow-y:auto; background:rgba(0,0,0,0.05); padding:8px; border-radius:4px; white-space:pre-wrap;">
+                Waiting for bootstrap...</div>
+            <button onclick="clearDiagnostics()" style="margin-top:8px; padding:4px 8px; font-size:11px;">Clear
+                Log</button>
+        </details>
     </div>
 
-    <div id="topicQueue" class="card hidden">
-        <h3>Topic Review Queue (Under Review)</h3>
-        <div id="topicQueueTable"></div>
+    <div id="tabs" class="tabs hidden">
+        <button onclick="showTab('submitTopic')" class="active">Submit Topic</button>
+        <button onclick="showTab('myTopics')">My Content</button>
+        <button id="tabReviewQueue" onclick="showTab('reviewQueue')" class="hidden">Review Queue</button>
+        <button id="tabPublisherQueue" onclick="showTab('publisherQueue')" class="hidden">Publisher Queue</button>
+        <button id="tabAdmin" onclick="showTab('adminPanel')" class="hidden">Admin</button>
     </div>
 
-    <div id="articleQueue" class="card hidden">
-        <h3>Article Review Queue</h3>
-        <div id="articleQueueTable"></div>
-    </div>
+    <!-- TAB: SUBMIT TOPIC -->
+    <div id="submitTopic" class="tab-content">
+        <div class="card" style="border-top: 4px solid var(--primary);">
+            <h3 style="margin-bottom:20px;">Submit New Topic</h3>
 
-    <div id="publisherQueue" class="card hidden">
-        <h3>Publisher Queue (Ready to Post)</h3>
-        <div id="publisherQueueTable"></div>
-    </div>
-
-    <div id="adminPanel" class="card hidden">
-        <h3>Admin Panel</h3>
-        <div id="adminControls">
-            <p>Super-admin overrides and management.</p>
-            <div id="adminTable"></div>
-
-            <hr style="margin:20px 0; border:0; border-top:1px solid #eee;" />
-
-            <h4>Slack Integration Debug</h4>
-            <div style="background:#f9f9f9; padding:10px; border-radius:8px; font-size:13px;">
-                <div class="row">
-                    <div style="flex:1;">
-                        <div>Page ID (e.g. IDS)</div>
-                        <input id="testSlackPage" style="width:100%" placeholder="e.g. IDS" />
-                    </div>
-                    <div style="flex:1;">
-                        <div>Type</div>
-                        <select id="testSlackType" style="width:100%">
-                            <option value="topic_slack_channel">Topic Review</option>
-                            <option value="article_slack_channel">Article Review</option>
-                            <option value="publisher_slack_channel">Publisher</option>
-                        </select>
-                    </div>
+            <div class="row" style="gap:20px; align-items:flex-start;">
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Page / Account<span
+                            class="required-star">*</span></div>
+                    <select id="pageSelect"></select>
                 </div>
-                <button onclick="testSlack()"
-                    style="margin-top:10px; background:#673ab7; color:white; border:none; border-radius:4px; cursor:pointer;">Send
-                    Test Message</button>
-                <div id="testSlackMsg" style="margin-top:8px; font-weight:bold;"></div>
+                <div style="flex:2;">
+                    <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Topic Title<span
+                            class="required-star">*</span></div>
+                    <input id="topicTitle" placeholder="e.g. 5 Tips for Better Engagement" />
+                </div>
+            </div>
+
+            <div style="margin-top:20px;">
+                <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Google Doc URL (Outline)<span
+                        class="optional-label">(optional)</span></div>
+                <input id="topicDocUrl" placeholder="https://docs.google.com/..." />
+            </div>
+
+            <div style="margin-top:20px;">
+                <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Notes / Instructions<span
+                        class="optional-label">(optional)</span></div>
+                <textarea id="topicNotes"
+                    placeholder="Any specific requirements or context for the writer..."></textarea>
+            </div>
+
+            <div class="row" style="margin-top:24px; justify-content:space-between;">
+                <button class="btn-primary" onclick="submitTopic(this)" id="btnSubmitTopic">Submit Topic</button>
+                <span id="submitTopicMsg"></span>
             </div>
         </div>
     </div>
 
-    <!-- Submit Article Modal/Overlay (Simple inline hidden div for MVP) -->
-    <div id="submitArticleModal" class="card hidden" style="border: 2px solid #4caf50; background: #fdfdfd;">
-        <h3>Submit Article</h3>
-        <p><b>Topic:</b> <span id="sa_topicTitle"></span> (<span id="sa_topicId"></span>)</p>
-        <div>
-            <div>Content URL (Google Doc) <b style="color:red">*</b></div>
-            <input id="sa_contentUrl" placeholder="https://docs.google.com/..." style="width:100%" />
+    <!-- TAB: MY TOPICS -->
+    <div id="myTopics" class="tab-content hidden">
+        <div class="card" style="border-left: 4px solid var(--primary);">
+            <h3>My Topics & Articles</h3>
+            <div id="myTopicsTable"></div>
         </div>
-        <div class="row" style="margin-top:10px;">
+    </div>
+
+    <!-- TAB: REVIEW QUEUE -->
+    <div id="reviewQueue" class="tab-content hidden">
+        <div class="card" style="border-left: 4px solid var(--warning);">
+            <h3>Review Queues</h3>
+
+            <div id="topicQueueSection">
+                <h4 style="font-family:'Outfit'; margin-bottom:12px;">Topics Waiting approval</h4>
+                <div id="topicQueueTable"></div>
+            </div>
+
+            <div id="articleQueueSection"
+                style="margin-top:32px; border-top:1px solid var(--border); padding-top:24px;">
+                <h4 style="font-family:'Outfit'; margin-bottom:12px;">Articles Waiting review</h4>
+                <div id="articleQueueTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: PUBLISHER QUEUE -->
+    <div id="publisherQueue" class="tab-content hidden">
+        <div class="card" style="border-left: 4px solid var(--success);">
+            <h3>Publisher Queue</h3>
+            <div id="publisherQueueTable"></div>
+        </div>
+    </div>
+
+    <!-- TAB: ADMIN PANEL -->
+    <div id="adminPanel" class="tab-content hidden">
+        <div class="card" style="border-left: 4px solid var(--danger);">
+            <h3>Admin Control Panel</h3>
+            <div id="adminTable"></div>
+            <hr style="margin:24px 0; border:0; border-top:1px solid var(--border);" />
+
+            <h4 style="font-family:'Outfit';">Slack Integration Debug</h4>
+            <div class="row" style="gap:16px; margin-top:12px;">
+                <input id="testSlackPage" placeholder="Page ID (e.g. pg01)" style="flex:1;" />
+                <select id="testSlackType" style="flex:1;">
+                    <option value="TOPIC_READY">Topic Ready</option>
+                    <option value="ARTICLE_SUBMITTED">Article Submitted</option>
+                </select>
+                <button class="btn-primary" onclick="testSlack()">Send Test</button>
+            </div>
+            <div id="testSlackMsg" style="margin-top:8px; font-size:12px;"></div>
+
+            <div style="margin-top:32px;">
+                <h4 style="font-family:'Outfit';">System Diagnostics</h4>
+                <button onclick="runDebug()" style="margin-top:8px;">Run Full Health Check</button>
+                <pre id="debugOut" class="mono" style="margin-top:12px; max-height:300px; overflow:auto;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ACTION -->
+<div id="actionModal" class="modal-overlay hidden">
+    <div class="card" style="max-width: 500px; width: 95%; margin-top: 60px; border-top: 6px solid var(--primary);">
+        <h3 id="amTitle">Action</h3>
+        <div id="amLabel" style="font-size:14px; font-weight:600; margin-bottom:8px;"></div>
+        <input id="amInput" style="margin-bottom:16px;" />
+        <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Comments / Feedback <span id="amRequired"
+                style="color:var(--danger); display:none;">*</span></div>
+        <textarea id="amComments" placeholder="Enter details here..."></textarea>
+
+        <div id="amHistoryTitle" style="margin-top:20px; font-weight:700; font-size:14px; display:none;">Recent
+            History</div>
+        <div id="amHistoryArea" style="display:none;"></div>
+
+        <div class="row" style="justify-content: flex-end; gap:12px; margin-top:24px;">
+            <button onclick="closeActionModal()">Cancel</button>
+            <button id="amBtnConfirm" class="btn-primary">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: SUBMIT ARTICLE -->
+<div id="submitArticleModal" class="modal-overlay hidden">
+    <div class="card" style="max-width: 650px; width: 95%; margin-top: 40px; border-top: 6px solid var(--success);">
+        <h3>Submit Article</h3>
+        <div
+            style="background:var(--table-header-bg); padding:12px; border-radius:8px; margin-bottom:20px; font-size:13px;">
+            <div style="font-weight:700; font-size:15px; font-family:'Outfit';">Submit Article Content</div>
+            <div style="font-weight:600; color:var(--text-muted); margin-bottom:4px; margin-top:8px;">Draft Content for:
+            </div>
+            <div id="sa_topicTitle" style="font-weight:700; font-size:15px; font-family:'Outfit';"></div>
+            <div style="font-size:11px; margin-top:4px; opacity:0.8;">Topic ID: <span id="sa_topicId"
+                    class="pill"></span></div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Final Content URL (Google Doc)<span
+                    class="required-star">*</span></div>
+            <input id="sa_contentUrl" placeholder="https://docs.google.com/..." />
+        </div>
+
+        <div class="row" style="gap:20px; margin-bottom:16px;">
             <div style="flex:1;">
-                <div>Image URLs (optional)</div>
-                <input id="sa_imageUrls" placeholder="Link 1, Link 2..." style="width:100%" />
-            </div>
-            <div style="width:200px;">
-                <div>Posting Date/Time</div>
-                <input type="datetime-local" id="sa_postingDt" style="width:100%" />
-            </div>
-            <div style="width:150px;">
-                <div>Language</div>
-                <select id="sa_language" style="width:100%">
+                <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Language<span
+                        class="required-star">*</span></div>
+                <select id="sa_language">
                     <option value="Thai">Thai</option>
                     <option value="English">English</option>
-                    <option value="Bilingual">Bilingual</option>
-                    <option value="Other">Other</option>
                 </select>
             </div>
+            <div style="flex:1;">
+                <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Image Assets URL<span
+                        class="optional-label">(optional)</span></div>
+                <input id="sa_imageUrls" placeholder="Google Drive / Dropbox link..." />
+            </div>
         </div>
-        <div style="margin-top:10px;">
-            <div>Notes to Reviewer / Assets / Captions</div>
-            <textarea id="sa_notes" placeholder="Any context, hashtags..."></textarea>
+
+        <div style="margin-bottom:20px;">
+            <div style="font-weight:600; font-size:13px; margin-bottom:6px;">Notes to Reviewer<span
+                    class="optional-label">(optional)</span></div>
+            <textarea id="sa_notes" placeholder="Explain any specifics or things to check..."></textarea>
         </div>
-        <div style="margin-top:10px;">
-            <label><input type="checkbox" id="sa_readyCheck" /> Ready for review <b style="color:red">*</b></label>
+
+        <div
+            style="background:var(--card-bg); border:1px solid var(--card-border); padding:12px; border-radius:8px; display:flex; align-items:center; gap:12px;">
+            <input type="checkbox" id="sa_readyCheck" style="width:20px; height:20px; margin:0;" />
+            <label for="sa_readyCheck" style="font-size:13px; font-weight:500; cursor:pointer;">I confirm this
+                article is complete and ready for review.</label>
         </div>
-        <div style="margin-top:10px;">
-            <button onclick="doSubmitArticle()">Submit Article</button>
-            <button onclick="closeSubmitArticle()">Cancel</button>
+
+        <div class="row" style="justify-content: flex-end; gap:12px; margin-top:24px;">
             <span id="sa_msg"></span>
+            <button onclick="closeSubmitArticle()">Cancel</button>
+            <button id="btnSubmitArt" class="btn-primary" onclick="doSubmitArticle()">Submit Article</button>
         </div>
     </div>
+</div>
 
-    <!-- Generic Action Modal -->
-    <div id="actionModal" class="card hidden" style="border: 2px solid #2196f3; background: #fdfdfd;">
-        <h3 id="amTitle">Action</h3>
-        <p id="amContext" style="font-size:12px; color:#555; margin-bottom:10px;"></p>
+<script>
+    // If any JS error happens, show it in Diagnostics output.
+    window.addEventListener('error', (e) => {
+        const el = document.getElementById('debugOut');
+        if (el) el.innerText = 'JS Error: ' + (e.message || e.type || 'unknown') + (e.filename ? ('\n' + e.filename + ':' + e.lineno + ':' + e.colno) : '');
+    });
 
-        <div id="amInputs">
-            <!-- Title Input (for Resubmit) -->
-            <div id="amInputTitleGroup" class="hidden" style="margin-bottom:10px;">
-                <div style="font-weight:bold;">Topic Title</div>
-                <input id="amInputTitle" style="width:100%" />
-            </div>
+    let ctx = null;
+    let clientEmail = localStorage.getItem("portal_email") || "";
 
-            <!-- Content URL Input (for Mark Posted) -->
-            <div id="amInputUrlGroup" class="hidden" style="margin-bottom:10px;">
-                <div style="font-weight:bold;">Posted URL <span style="color:red">*</span></div>
-                <input id="amInputUrl" style="width:100%" placeholder="https://..." />
-            </div>
+    // Diagnostic Logging
+    function logDiagnostic(message, type = 'info') {
+        const log = document.getElementById('diagnosticLog');
+        if (!log) return;
+        const timestamp = new Date().toLocaleTimeString();
+        const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warn' ? '⚠️' : 'ℹ️';
+        log.textContent += `\n[${timestamp}] ${prefix} ${message}`;
+        log.scrollTop = log.scrollHeight;
+        console.log(`[DIAGNOSTIC] ${message}`);
+    }
 
-            <!-- Comment/Notes Textarea (Shared) -->
-            <div id="amInputCommentGroup" style="margin-bottom:10px;">
-                <div id="amInputCommentLabel" style="font-weight:bold;">Comment / Notes</div>
-                <textarea id="amInputComment" placeholder="..."></textarea>
-            </div>
-        </div>
+    function clearDiagnostics() {
+        const log = document.getElementById('diagnosticLog');
+        if (log) log.textContent = 'Log cleared.\n';
+    }
 
-        <div style="margin-top:10px;">
-            <button id="amBtnConfirm"
-                style="background:#2196f3; color:white; border:none; padding:8px 16px; cursor:pointer;">Confirm</button>
-            <button onclick="closeActionModal()"
-                style="margin-left:8px; padding:8px 16px; cursor:pointer;">Cancel</button>
-            <span id="amMsg" style="margin-left:10px; font-size:12px; color:#c00;"></span>
-        </div>
-    </div>
+    const CFG = {
+        TOPIC_STATUSES: {
+            UNDER_REVIEW: "Under Review",
+            CHANGES: "Changes Requested",
+            APPROVED: "Approved",
+            DISCARDED: "Discarded",
+            REJECTED: "Rejected",
+            DRAFT: "Draft"
+        },
+        ARTICLE_STATUSES: {
+            UNDER_REVIEW: "Under Review",
+            CHANGES: "Changes Requested",
+            READY: "Ready to Post",
+            POSTED: "Posted",
+            REJECTED: "Rejected"
+        }
+    };
 
-    <!-- History Modal -->
-    <div id="historyModal" class="hidden"
-        style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:2000;">
-        <div class="card" style="background:#fff; width:600px; max-width:95%;">
-            <div
-                style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <h3 id="hmTitle" style="margin:0;">History</h3>
-                <button onclick="closeHistoryModal()"
-                    style="border:none; background:none; font-size:20px; cursor:pointer;">&times;</button>
-            </div>
-            <div id="hmMsg" style="color:blue; margin-top:10px; font-size:12px;"></div>
-            <div id="historyContent" style="margin-top:15px;"></div>
-            <div style="text-align:right; margin-top:20px;">
-                <button onclick="closeHistoryModal()" style="padding:8px 16px;">Close</button>
-            </div>
-        </div>
-    </div>
+    function setEmail() {
+        const e = document.getElementById("emailInput").value.trim().toLowerCase();
+        if (!e) return;
+        localStorage.setItem("portal_email", e);
+        clientEmail = e;
+        bootstrap();
+    }
 
-    <script>
-        // If any JS error happens, show it in Diagnostics output.
-        window.addEventListener('error', (e) => {
-            const el = document.getElementById('debugOut');
-            if (el) el.innerText = 'JS Error: ' + (e.message || e.type || 'unknown') + (e.filename ? ('\n' + e.filename + ':' + e.lineno + ':' + e.colno) : '');
+    // Initialize Theme
+    (function () {
+        const savedTheme = localStorage.getItem('portal_theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+    })();
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const target = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', target);
+        localStorage.setItem('portal_theme', target);
+        updateThemeIcon(target);
+    }
+
+    function updateThemeIcon(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        btn.innerHTML = theme === 'dark'
+            ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="4.22" x2="19.78" y2="5.64"></line></svg>'
+            : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+    // Adjustable Width Logic
+    function toggleWidth() {
+        const container = document.getElementById('mainContainer');
+        const btnText = document.getElementById('widthText');
+        const isFull = container.classList.toggle('full-width');
+        const mode = isFull ? 'wide' : 'standard';
+        // Show what clicking will do NEXT (opposite of current state)
+        btnText.innerText = isFull ? 'Standard Width' : 'Wide Width';
+        localStorage.setItem('portal_width', mode);
+    }
+
+    (function () {
+        const savedWidth = localStorage.getItem('portal_width');
+        if (savedWidth === 'wide') {
+            const container = document.getElementById('mainContainer');
+            const btnText = document.getElementById('widthText');
+            if (container) container.classList.add('full-width');
+            // Show what clicking will do NEXT (switch to standard)
+            if (btnText) btnText.innerText = 'Standard Width';
+        }
+    })();
+
+    const widthToggle = document.getElementById('widthToggle');
+    if (widthToggle) widthToggle.addEventListener('click', toggleWidth);
+
+    function showTab(id) {
+        closeActionModal(); // Keep existing modal closing behavior
+        closeSubmitArticle(); // Keep existing modal closing behavior
+
+        // Hide all tab-content divs
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(id);
+        if (target) target.classList.remove('hidden');
+
+        // Update active state on tab buttons
+        document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.querySelector(`.tabs button[onclick*="'${id}'"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Refresh specific data if needed
+        if (id === 'myTopics') refreshMyTopics();
+        if (id === 'reviewQueue') { refreshTopicQueue(); refreshArticleQueue(); }
+        if (id === 'publisherQueue') refreshPublisherQueue();
+        if (id === 'adminPanel') refreshAdmin();
+    }
+
+    function bootstrap() {
+        logDiagnostic('Bootstrap started');
+        logDiagnostic(`Client email from localStorage: "${clientEmail}"`);
+
+
+        document.getElementById("statusText").innerText = "Checking access...";
+
+        logDiagnostic('Calling api_getContext...');
+
+        google.script.run
+            .withSuccessHandler(res => {
+                logDiagnostic('Success handler called', 'success');
+                logDiagnostic(`Response received: ${JSON.stringify(res).substring(0, 200)}...`);
+
+                if (!res || !res.ok) {
+                    const errorMsg = (res && res.message) || "Access error";
+                    logDiagnostic(`Response not OK: ${errorMsg}`, 'error');
+                    document.getElementById("authStatus").innerText = errorMsg;
+                    document.getElementById("statusText").innerText = errorMsg;
+                    if (res && res.code === "NO_EMAIL") {
+                        logDiagnostic('NO_EMAIL code detected, showing email prompt', 'warn');
+                        document.getElementById("emailPrompt").classList.remove("hidden");
+                    }
+                    return;
+                }
+
+                logDiagnostic('Response OK, setting ctx');
+                ctx = res;
+
+                if (!ctx.roles || !ctx.pages) {
+                    logDiagnostic('Incomplete server response - missing roles or pages', 'error');
+                    logDiagnostic(`Has roles: ${!!ctx.roles}, Has pages: ${!!ctx.pages}`);
+                    document.getElementById("authStatus").innerText = "Error: Incomplete server response.";
+                    document.getElementById("statusText").innerText = "Error: Incomplete server response.";
+                    return;
+                }
+
+                logDiagnostic('Updating UI elements...');
+                document.getElementById("statusText").innerText = "Success";
+                logDiagnostic('Status text updated');
+
+                // Populate Header
+                const headerEmail = document.getElementById("headerEmail");
+                if (headerEmail) {
+                    headerEmail.innerText = ctx.email;
+                    logDiagnostic(`Header email set to: ${ctx.email}`);
+                } else {
+                    logDiagnostic('headerEmail element not found!', 'warn');
+                }
+
+                const userInfoHeader = document.getElementById("userInfoHeader");
+                if (userInfoHeader) {
+                    userInfoHeader.classList.remove("hidden");
+                    logDiagnostic('User info header shown');
+                } else {
+                    logDiagnostic('userInfoHeader element not found!', 'warn');
+                }
+
+                const authCard = document.getElementById("authCard");
+                if (authCard) {
+                    authCard.classList.add("hidden");
+                    logDiagnostic('Auth card hidden');
+                } else {
+                    logDiagnostic('authCard element not found!', 'warn');
+                }
+
+                const tabs = document.getElementById("tabs");
+                if (tabs) {
+                    tabs.classList.remove("hidden");
+                    logDiagnostic('Tabs shown');
+                } else {
+                    logDiagnostic('tabs element not found!', 'warn');
+                }
+
+                const isSuper = ctx.roles.is_super_admin;
+                const isAuthor = ctx.roles.is_author;
+                const isReviewer = ctx.roles.is_article_reviewer;
+                const isPublisher = ctx.roles.is_publisher;
+
+                logDiagnostic(`User roles: super=${isSuper}, author=${isAuthor}, reviewer=${isReviewer}, publisher=${isPublisher}`);
+
+                // Consolidated Review Queue visibility
+                const canSeeReview = isAuthor || isReviewer || isSuper;
+                const tabReview = document.getElementById("tabReviewQueue");
+                if (tabReview) tabReview.classList.toggle("hidden", !canSeeReview);
+
+                const sectionTopic = document.getElementById("topicQueueSection");
+                if (sectionTopic) sectionTopic.classList.toggle("hidden", !canSeeReview);
+
+                const sectionArticle = document.getElementById("articleQueueSection");
+                if (sectionArticle) sectionArticle.classList.toggle("hidden", !(isReviewer || isSuper));
+
+                const tabPub = document.getElementById("tabPublisherQueue");
+                if (tabPub) tabPub.classList.toggle("hidden", !(isPublisher || isSuper));
+
+                const tabAdmin = document.getElementById("tabAdmin");
+                if (tabAdmin) tabAdmin.classList.toggle("hidden", !isSuper);
+
+                logDiagnostic('Loading pages...');
+                loadPages(ctx.pages);
+                logDiagnostic('Showing submit topic tab...');
+                showTab("submitTopic");
+                logDiagnostic('Bootstrap completed successfully!', 'success');
+            })
+            .withFailureHandler(err => {
+                logDiagnostic(`Failure handler called: ${err.message}`, 'error');
+                logDiagnostic(`Error details: ${JSON.stringify(err)}`, 'error');
+                document.getElementById("authStatus").innerText = "Error: " + err.message;
+                document.getElementById("statusText").innerText = "Error: " + err.message;
+            })
+            .api_getContext(clientEmail);
+
+        logDiagnostic('api_getContext call initiated (async)');
+    }
+
+    function logout() {
+        closeActionModal();
+        closeSubmitArticle();
+        localStorage.removeItem("portal_email");
+        ctx = null;
+        const headerEmail = document.getElementById("headerEmail");
+        if (headerEmail) headerEmail.innerText = "";
+        document.getElementById("userInfoHeader").classList.add("hidden");
+        document.getElementById("statusText").innerText = "Logged out.";
+        document.getElementById("authCard").classList.remove("hidden");
+        document.getElementById("emailPrompt").classList.remove("hidden");
+        document.getElementById("tabs").classList.add("hidden");
+        document.getElementById("emailInput").value = "";
+    }
+
+    function runDebug() {
+        const dbg = document.getElementById("debugOut");
+        const email = (ctx && ctx.email) ? ctx.email : (document.getElementById("emailInput").value || "").trim().toLowerCase();
+
+        if (!email) {
+            dbg.innerText = "Enter your email first, then click Diagnostics.";
+            return;
+        }
+
+        dbg.innerText = `[Local Context]\nEmail: ${email}\nRoles: ${ctx ? JSON.stringify(ctx.roles) : 'Not loaded'}\n\nRunning backend diagnostics...`;
+
+        google.script.run
+            .withSuccessHandler(res => {
+                if (!res) {
+                    dbg.innerText += "\n\nServer returned no response.";
+                } else if (res.ok) {
+                    dbg.innerText += "\n\n[Backend Success]\n" + JSON.stringify(res.details || res, null, 2);
+                } else {
+                    dbg.innerText += "\n\n[Backend Error]\n" + res.message;
+                }
+            })
+            .withFailureHandler(err => {
+                dbg.innerText += "\n\n[Critical Error]\n" + err.message;
+            })
+            .api_debug({ email });
+    }
+
+    function loadPages(pages) {
+        const sel = document.getElementById("pageSelect");
+        sel.innerHTML = "";
+        pages.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.page_id;
+            opt.textContent = `${p.page_id} — ${p.page_name}`;
+            sel.appendChild(opt);
+        });
+    }
+
+    function submitTopic(btn) {
+        const payload = {
+            email: ctx.email,
+            page_id: document.getElementById("pageSelect").value,
+            topic_title: document.getElementById("topicTitle").value,
+            content_doc_url: document.getElementById("topicDocUrl").value,
+            notes: document.getElementById("topicNotes").value
+        };
+        if (!payload.topic_title) { alert("Title is required."); return; }
+
+        btn.disabled = true;
+        document.getElementById("submitTopicMsg").innerText = "Submitting…";
+        google.script.run
+            .withSuccessHandler(res => {
+                btn.disabled = false;
+                document.getElementById("submitTopicMsg").innerText =
+                    res.ok ? ("Submitted: " + res.topic_id) : "Failed";
+                document.getElementById("topicTitle").value = "";
+                document.getElementById("topicDocUrl").value = "";
+                document.getElementById("topicNotes").value = "";
+            })
+            .withFailureHandler(err => {
+                btn.disabled = false;
+                document.getElementById("submitTopicMsg").innerText = "Error: " + err.message;
+            })
+            .api_submitTopic(payload);
+    }
+
+    function fmtWait(submittedAt) {
+        if (!submittedAt) return "";
+        const t = new Date(submittedAt).getTime();
+        if (!t) return "";
+        const mins = Math.floor((Date.now() - t) / 60000);
+        if (mins < 60) return mins + "m";
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return h + "h " + m + "m";
+    }
+
+    function renderLoading(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            const msgId = id + "_loadingMsg";
+            if (!document.getElementById(msgId)) {
+                const msg = document.createElement("div");
+                msg.id = msgId;
+                msg.className = "mono";
+                msg.style = "position:absolute; background:var(--card-bg); backdrop-filter:blur(4px); padding:8px 16px; border-radius:8px; font-size:12px; color:var(--primary); pointer-events:none; border:1px solid var(--card-border); margin-top: -40px; z-index:10; box-shadow:var(--glass-shadow); font-weight:600;";
+                msg.innerText = "Refreshing...";
+                el.prepend(msg);
+            }
+        }
+    }
+
+    function clearLoading(id) {
+        const msg = document.getElementById(id + "_loadingMsg");
+        if (msg) msg.remove();
+    }
+
+    function refreshMyTopics() {
+        renderLoading("myTopicsTable");
+        google.script.run
+            .withSuccessHandler(res => {
+                clearLoading("myTopicsTable");
+                const topics = res.topics || [];
+                const articles = res.articles || [];
+                document.getElementById("myTopicsTable").innerHTML = renderMyTopics(topics, articles);
+            })
+            .withFailureHandler(err => {
+                clearLoading("myTopicsTable");
+                document.getElementById("myTopicsTable").innerText = "Error: " + err.message;
+            })
+            .api_listMyTopics({ email: ctx.email });
+    }
+
+    function refreshTopicQueue() {
+        renderLoading("topicQueueTable");
+        google.script.run
+            .withSuccessHandler(res => {
+                clearLoading("topicQueueTable");
+                const topics = res.topics || [];
+                document.getElementById("topicQueueTable").innerHTML = renderQueue(topics);
+            })
+            .withFailureHandler(err => {
+                clearLoading("topicQueueTable");
+                document.getElementById("topicQueueTable").innerText = "Error: " + err.message;
+            })
+            .api_listTopicQueue({ email: ctx.email });
+    }
+
+    function refreshPublisherQueue() {
+        renderLoading("publisherQueueTable");
+        google.script.run
+            .withSuccessHandler(res => {
+                clearLoading("publisherQueueTable");
+                const articles = res.publisherQueue || [];
+                document.getElementById("publisherQueueTable").innerHTML = renderPublisherQueue(articles);
+            })
+            .withFailureHandler(err => {
+                clearLoading("publisherQueueTable");
+                document.getElementById("publisherQueueTable").innerText = "Error: " + err.message;
+            })
+            .api_listArticles({ email: ctx.email });
+    }
+
+    function refreshArticleQueue() {
+        renderLoading("articleQueueTable");
+        google.script.run
+            .withSuccessHandler(res => {
+                clearLoading("articleQueueTable");
+                const articles = res.queue || [];
+                document.getElementById("articleQueueTable").innerHTML = renderArticleQueue(articles);
+            })
+            .withFailureHandler(err => {
+                clearLoading("articleQueueTable");
+                document.getElementById("articleQueueTable").innerText = "Error: " + err.message;
+            })
+            .api_listArticles({ email: ctx.email });
+    }
+
+    function renderMyTopics(topics, articles) {
+        if (!topics.length) return "<div style='padding:20px; color:var(--text-muted);'>No topics yet.</div>";
+        let html = "<table><thead><tr>" +
+            "<th>ID</th><th>Title</th><th>Page</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>";
+
+        topics.forEach(t => {
+            const associatedArticles = articles.filter(a => a.topic_id === t.topic_id);
+            const latestA = associatedArticles.length > 0 ? associatedArticles[associatedArticles.length - 1] : null;
+
+            let statusStr = "";
+            let statusClass = "";
+
+            if (latestA) {
+                statusStr = latestA.status;
+                if (latestA.status === CFG.ARTICLE_STATUSES.READY) statusClass = "ok";
+                else if (latestA.status === CFG.ARTICLE_STATUSES.CHANGES) statusClass = "warn";
+            } else {
+                statusStr = t.status;
+                if (t.status === CFG.TOPIC_STATUSES.APPROVED) statusClass = "ok";
+                else if (t.status === CFG.TOPIC_STATUSES.CHANGES) statusClass = "warn";
+                else if (t.status === "REJECTED") statusClass = "danger";
+            }
+
+            let actions = "";
+            if (t.status === CFG.TOPIC_STATUSES.CHANGES) {
+                actions += ` <button class=\"btn-warning\" onclick=\"resubmitTopic('${t.topic_id}', '${escapeHtml(t.topic_title || '')}')\">Resubmit Topic</button>`;
+            } else if (t.status === CFG.TOPIC_STATUSES.APPROVED) {
+                if (!latestA) {
+                    actions += ` <button class=\"btn-success\" onclick=\"openSubmitArticle('${t.topic_id}', '${escapeHtml(t.topic_title || '')}')\">Submit Article</button>`;
+                } else if (latestA.status === CFG.ARTICLE_STATUSES.CHANGES) {
+                    actions += ` <button class=\"btn-warning\" onclick=\"openResubmitArticle('${latestA.article_id}', '${escapeHtml(t.topic_title || '')}', '${escapeHtml(latestA.content_doc_url || '')}', '${escapeHtml(latestA.notes_to_reviewer || '')}')\">Resubmit Article</button>`;
+                }
+            }
+
+            if (t.status === CFG.TOPIC_STATUSES.UNDER_REVIEW || t.status === CFG.TOPIC_STATUSES.CHANGES) {
+                actions += ` <button class=\"btn-danger\" onclick=\"discardTopic('${t.topic_id}')\">Withdraw</button>`;
+            }
+
+            html += `<tr>
+                        <td><span class=\"pill\">${t.topic_id}</span></td>
+                        <td style=\"font-weight:600;\">${escapeHtml(t.topic_title || '')}</td>
+                        <td><span class=\"pill\">${t.page_id}</span></td>
+                        <td><span class=\"pill ${statusClass}\">${statusStr}</span></td>
+                        <td style=\"white-space:nowrap;\">${fmtWait(t.submitted_at)} ago</td>
+                        <td>
+                            ${actions}
+                            <div style=\"margin-top:8px;\">
+                                <a class=\"action-link\" onclick=\"showHistory('TOPIC', '${t.topic_id}')\">History</a>
+                                ${t.content_doc_url ? ` | <a href=\"${t.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Outline</a>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+        });
+        html += "</tbody></table>";
+        return html;
+    }
+
+    function renderQueue(topics) {
+        if (!topics.length) return "<div style='padding:20px; color:var(--text-muted);'>Topic queue is clear.</div>";
+        let html = "<table><thead><tr>" +
+            "<th>ID</th><th>Title</th><th>Page</th><th>Author</th><th>Waiting</th><th>Actions</th></tr></thead><tbody>";
+        topics.forEach(t => {
+            html += `<tr>
+                        <td><span class=\"pill\">${t.topic_id}</span></td>
+                        <td style=\"font-weight:600;\">${escapeHtml(t.topic_title || '')}</td>
+                        <td><span class=\"pill\">${t.page_id}</span></td>
+                        <td>${escapeHtml(t.author_name || t.author_email || '')}</td>
+                        <td>${fmtWait(t.submitted_at)}</td>
+                        <td>
+                            <button class=\"btn-success\" onclick=\"approveTopic('${t.topic_id}')\">Approve</button>
+                            <button class=\"btn-warning\" onclick=\"requestEditTopic('${t.topic_id}')\">Request edit</button>
+                            <button class=\"btn-danger\" onclick=\"rejectTopic('${t.topic_id}')\">Reject</button>
+                            <div style=\"margin-top:8px;\">
+                                <a class=\"action-link\" onclick=\"showHistory('TOPIC', '${t.topic_id}')\">History</a>
+                                ${t.content_doc_url ? ` | <a href=\"${t.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Outline</a>` : ''}
+                                ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideTopic('${t.topic_id}')\">Override</a>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+        });
+        html += "</tbody></table>";
+        return html;
+    }
+
+    function renderArticleQueue(articles) {
+        if (!articles.length) return "<div style='padding:20px; color:var(--text-muted);'>No articles waiting.</div>";
+        let html = "<table><thead><tr>" +
+            "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Status</th><th>Waiting</th><th>Reviewer</th><th>Actions</th></tr></thead><tbody>";
+        articles.forEach(a => {
+            let actions = "";
+            if (!a.assigned_reviewer_email) {
+                actions = `<button class="btn-primary" onclick=\"claimArticle('${a.article_id}')\">Claim Review</button>`;
+            } else if (a.assigned_reviewer_email === ctx.email) {
+                actions = `<button class="btn-success" onclick=\"reviewArticle('${a.article_id}', 'APPROVE')\">Approve</button> ` +
+                    `<button class="btn-warning" onclick=\"reviewArticle('${a.article_id}', 'CHANGES')\">Request edit</button> ` +
+                    `<button class="btn-danger\" onclick=\"reviewArticle('${a.article_id}', 'REJECT')\">Reject</button>`;
+            } else {
+                actions = `<span class="mono">${escapeHtml(a.reviewer_name || a.assigned_reviewer_email)}</span>`;
+            }
+
+            html += `<tr>
+                        <td><span class=\"pill\">${a.article_id}</span></td>
+                        <td style=\"font-weight:600;\">${escapeHtml(a.topic_title || 'Topic ' + a.topic_id)}</td>
+                        <td><span class=\"pill\">${a.page_id}</span></td>
+                        <td>${escapeHtml(a.author_name || a.author_email || '')}</td>
+                        <td><span class=\"pill\">${a.status}</span></td>
+                        <td>${fmtWait(a.submitted_at)}</td>
+                        <td>${escapeHtml(a.reviewer_name || 'Unassigned')}</td>
+                        <td>
+                            ${actions}
+                            <div style=\"margin-top:8px;\">
+                                <a href=\"${a.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a> | 
+                                <a class=\"action-link\" onclick=\"showHistory('ARTICLE', '${a.article_id}')\">History</a>
+                                ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideArticle('${a.article_id}')\">Override</a>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+        });
+        html += "</tbody></table>";
+        return html;
+    }
+
+
+    function renderArticleQueue(articles) {
+        if (!articles.length) return "<div style='padding:20px; color:var(--text-muted);'>No articles waiting review.</div>";
+        let html = "<table><thead><tr>" +
+            "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Waiting</th><th>Status</th><th>Actions</th></tr></thead><tbody>";
+        articles.forEach(a => {
+            let actions = "";
+            if (ctx.roles.is_super_admin || (ctx.roles.is_article_reviewer && a.status === CFG.ARTICLE_STATUSES.UNDER_REVIEW)) {
+                actions += `<button class=\"btn-approve\" onclick=\"reviewArticle('${a.article_id}', 'READY')\">Approve</button>
+                           <button class=\"btn-edit\" onclick=\"reviewArticle('${a.article_id}', 'CHANGES')\">Request Edit</button>`;
+            }
+
+            html += `<tr>
+                        <td><span class=\"pill\">${a.article_id}</span></td>
+                        <td style=\"font-weight:600;\">${escapeHtml(a.topic_title || 'Topic ' + a.topic_id)}</td>
+                        <td><span class=\"pill\">${a.page_id}</span></td>
+                        <td>${escapeHtml(a.author_name || a.author_email || '')}</td>
+                        <td>${formatWaitTime(a.submitted_at)}</td>
+                        <td><span class=\"pill\">${a.status}</span></td>
+                        <td>
+                            ${actions}
+                            <div style=\"margin-top:8px;\">
+                                <a href=\"${a.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a> | 
+                                <a class=\"action-link\" onclick=\"showHistory('ARTICLE', '${a.article_id}')\">History</a>
+                                ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideArticle('${a.article_id}')\">Override</a>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+        });
+        html += "</tbody></table>";
+        return html;
+    }
+
+    function renderPublisherQueue(articles) {
+        if (!articles.length) return "<div style='padding:20px; color:var(--text-muted);'>Queue is clear.</div>";
+        let html = "<table><thead><tr>" +
+            "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Status</th><th>Actions</th></tr></thead><tbody>";
+        articles.forEach(a => {
+            html += `<tr>
+                        <td><span class=\"pill\">${a.article_id}</span></td>
+                        <td style=\"font-weight:600;\">${escapeHtml(a.topic_title || 'Topic ' + a.topic_id)}</td>
+                        <td><span class=\"pill\">${a.page_id}</span></td>
+                        <td>${escapeHtml(a.author_name || a.author_email || '')}</td>
+                        <td><span class=\"pill ok\">${a.status}</span></td>
+                        <td>
+                            <button class=\"btn-success\" onclick=\"markPosted('${a.article_id}')\">Mark Posted</button>
+                            <div style=\"margin-top:8px;\">
+                                <a href=\"${a.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a> | 
+                                <a class=\"action-link\" onclick=\"showHistory('ARTICLE', '${a.article_id}')\">History</a>
+                                ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideArticle('${a.article_id}')\">Override</a>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+        });
+        html += "</tbody></table>";
+        return html;
+    }
+
+    function showHistory(type, id) {
+        openActionModal({
+            title: `History: ${type} ${id}`,
+            label: "",
+            showInput: false,
+            requireComments: false,
+            showHistory: true,
+            onConfirm: () => closeActionModal()
         });
 
-        let ctx = null;
-        let clientEmail = localStorage.getItem("portal_email") || "";
+        google.script.run
+            .withSuccessHandler(res => {
+                const logs = res.logs || [];
+                const historyArea = document.getElementById("amHistoryArea");
+                if (!historyArea) return;
 
-        function setEmail() {
-            const e = document.getElementById("emailInput").value.trim().toLowerCase();
-            if (!e) return;
-            localStorage.setItem("portal_email", e);
-            clientEmail = e;
-            bootstrap();
-        }
+                if (!logs.length) {
+                    historyArea.innerHTML = "<div style='padding:12px; color:var(--text-muted);'>No history available.</div>";
+                    historyArea.style.display = "block";
+                    return;
+                }
 
-        function showTab(id) {
-            closeActionModal();
-            closeSubmitArticle();
-            ["submitTopic", "myTopics", "topicQueue", "articleQueue", "publisherQueue", "adminPanel"].forEach(t => {
-                document.getElementById(t).classList.toggle("hidden", t !== id);
-            });
-            if (id === "myTopics") refreshMyTopics();
-            if (id === "topicQueue") refreshTopicQueue();
-            if (id === "articleQueue") refreshArticleQueue();
-            if (id === "publisherQueue") refreshPublisherQueue();
-            if (id === "adminPanel") refreshAdmin();
-        }
-
-        function bootstrap() {
-            document.getElementById("authStatus").innerText = "Checking access…";
-            google.script.run
-                .withSuccessHandler(res => {
-                    if (!res.ok) {
-                        document.getElementById("authStatus").innerText = res.message || "Access error";
-                        if (res.code === "NO_EMAIL") {
-                            document.getElementById("emailPrompt").classList.remove("hidden");
-                        }
-                        return;
-                    }
-                    ctx = res;
-                    document.getElementById("authStatus").innerHTML =
-                        `Signed in as <b>${ctx.email}</b> <span class="pill">allowlisted</span> <button onclick="logout()" style="margin-left:10px; padding:2px 8px; font-size:12px;">Logout</button>`;
-                    document.getElementById("emailPrompt").classList.add("hidden");
-                    document.getElementById("tabs").classList.remove("hidden");
-
-                    // Role-based tab visibility
-                    if (ctx.roles.is_super_admin) document.getElementById("tabAdmin").classList.remove("hidden");
-
-                    const isSuper = ctx.roles.is_super_admin;
-                    const isAuthor = ctx.roles.is_author;
-                    const isReviewer = ctx.roles.is_article_reviewer;
-                    const isPublisher = ctx.roles.is_publisher;
-
-                    // Authors, Reviewers, and Super Admins can review topics
-                    const canReviewTopics = isAuthor || isReviewer || isSuper;
-                    document.getElementById("tabTopicQueue").classList.toggle("hidden", !canReviewTopics);
-
-                    // Only Article Reviewers and Super Admins can review articles
-                    document.getElementById("tabArticleQueue").classList.toggle("hidden", !(isReviewer || isSuper));
-
-                    // Only Publishers and Super Admins can see the Publisher Queue
-                    document.getElementById("tabPublisherQueue").classList.toggle("hidden", !(isPublisher || isSuper));
-
-                    loadPages(ctx.pages);
-                    showTab("submitTopic");
-                })
-                .withFailureHandler(err => {
-                    document.getElementById("authStatus").innerText = "Error: " + err.message;
-                })
-                .api_getContext(clientEmail);
-        }
-
-        function logout() {
-            closeActionModal();
-            closeSubmitArticle();
-            localStorage.removeItem("portal_email");
-            ctx = null;
-            document.getElementById("authStatus").innerText = "Logged out.";
-            document.getElementById("emailPrompt").classList.remove("hidden");
-            document.getElementById("tabs").classList.add("hidden");
-            document.getElementById("submitTopic").classList.add("hidden");
-            document.getElementById("myTopics").classList.add("hidden");
-            document.getElementById("topicQueue").classList.add("hidden");
-            document.getElementById("articleQueue").classList.add("hidden"); // Added
-            document.getElementById("publisherQueue").classList.add("hidden"); // Added
-            document.getElementById("adminPanel").classList.add("hidden");
-            document.getElementById("tabAdmin").classList.add("hidden");
-            document.getElementById("emailInput").value = "";
-        }
-
-        function runDebug() {
-            const dbg = document.getElementById("debugOut");
-            const email = (ctx && ctx.email) ? ctx.email : (document.getElementById("emailInput").value || "").trim().toLowerCase();
-
-            if (!email) {
-                dbg.innerText = "Enter your email first, then click Diagnostics.";
-                return;
-            }
-
-            dbg.innerText = `[Local Context]\nEmail: ${email}\nRoles: ${ctx ? JSON.stringify(ctx.roles) : 'Not loaded'}\n\nRunning backend diagnostics...`;
-
-            google.script.run
-                .withSuccessHandler(res => {
-                    if (!res) {
-                        dbg.innerText += "\n\nServer returned no response.";
-                    } else if (res.ok) {
-                        dbg.innerText += "\n\n[Backend Success]\n" + JSON.stringify(res.details || res, null, 2);
-                    } else {
-                        dbg.innerText += "\n\n[Backend Error]\n" + res.message;
-                    }
-                })
-                .withFailureHandler(err => {
-                    dbg.innerText += "\n\n[Critical Error]\n" + err.message;
-                })
-                .api_debug({ email });
-        }
-
-        function loadPages(pages) {
-            const sel = document.getElementById("pageSelect");
-            sel.innerHTML = "";
-            pages.forEach(p => {
-                const opt = document.createElement("option");
-                opt.value = p.page_id;
-                opt.textContent = `${p.page_id} — ${p.page_name}`;
-                sel.appendChild(opt);
-            });
-        }
-
-        function submitTopic() {
-            const btn = event.target;
-            const payload = {
-                email: ctx.email,
-                page_id: document.getElementById("pageSelect").value,
-                topic_title: document.getElementById("topicTitle").value,
-                content_doc_url: document.getElementById("topicDocUrl").value,
-                notes: document.getElementById("topicNotes").value
-            };
-            if (!payload.topic_title) { alert("Title is required."); return; }
-
-            btn.disabled = true;
-            document.getElementById("submitTopicMsg").innerText = "Submitting…";
-            google.script.run
-                .withSuccessHandler(res => {
-                    btn.disabled = false;
-                    document.getElementById("submitTopicMsg").innerText =
-                        res.ok ? ("Submitted: " + res.topic_id) : "Failed";
-                    document.getElementById("topicTitle").value = "";
-                    document.getElementById("topicDocUrl").value = "";
-                    document.getElementById("topicNotes").value = "";
-                })
-                .withFailureHandler(err => {
-                    btn.disabled = false;
-                    document.getElementById("submitTopicMsg").innerText = "Error: " + err.message;
-                })
-                .api_submitTopic(payload);
-        }
-
-        function fmtWait(submittedAt) {
-            if (!submittedAt) return "";
-            const t = new Date(submittedAt).getTime();
-            if (!t) return "";
-            const mins = Math.floor((Date.now() - t) / 60000);
-            if (mins < 60) return mins + "m";
-            const h = Math.floor(mins / 60);
-            const m = mins % 60;
-            return h + "h " + m + "m";
-        }
-
-        function renderLoading(id) {
-            const el = document.getElementById(id);
-            const hasContent = el.innerHTML.trim() !== "" && !el.innerHTML.includes("Loading data...");
-            if (!hasContent) {
-                el.innerHTML = `<div style="padding:20px; text-align:center; color:#888;">
-                    <span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Loading data...
+                let html = "";
+                logs.forEach(log => {
+                    html += `<div class="history-item">
+                    <span class="history-actor">${escapeHtml(log.actor_name || log.actor_email)}</span>
+                    <span class="history-date">${log.timestamp}</span>
+                    <div style="margin-top:4px; font-size:12px;">${log.action}: ${log.from_status || ''} → ${log.to_status || ''}</div>
+                    ${log.notes ? `<div style="margin-top:4px; font-size:12px; font-style:italic;">${escapeHtml(log.notes)}</div>` : ''}
                 </div>`;
-            } else {
-                const msgId = id + "_loadingMsg";
-                if (!document.getElementById(msgId)) {
-                    const msg = document.createElement("div");
-                    msg.id = msgId;
-                    msg.style = "position:absolute; background:rgba(255,255,255,0.8); padding:4px 8px; border-radius:4px; font-size:11px; color:#555; pointer-events:none; border:1px solid #ddd; margin-top: -30px; z-index:10;";
-                    msg.innerText = "Refreshing...";
-                    el.prepend(msg);
+                });
+                historyArea.innerHTML = html;
+                historyArea.style.display = "block";
+            })
+            .withFailureHandler(err => {
+                const historyArea = document.getElementById("amHistoryArea");
+                if (historyArea) {
+                    historyArea.innerHTML = `<div style='padding:12px; color:var(--danger);'>Error: ${err.message}</div>`;
+                    historyArea.style.display = "block";
                 }
-            }
+            })
+            .api_getHistory({ email: ctx.email, object_type: type, object_id: id });
+    }
+
+    // --- GENERIC ACTION MODAL ---
+    let currentActionCallback = null;
+    let _modalConfirmCallback = null; // New callback for the refined modal
+
+    function openActionModal(opts) {
+        const m = document.getElementById("actionModal");
+        document.getElementById("amTitle").innerText = opts.title || "Action";
+
+        const lbl = document.getElementById("amLabel");
+        lbl.innerText = opts.label || "";
+        lbl.style.display = opts.label ? "block" : "none";
+
+        const inp = document.getElementById("amInput");
+        inp.value = opts.initialValue || "";
+        inp.placeholder = opts.placeholder || "";
+        inp.style.display = opts.showInput ? "block" : "none";
+
+        const cmts = document.getElementById("amComments");
+        cmts.value = "";
+        cmts.placeholder = opts.commentPlaceholder || "Enter details here...";
+
+        document.getElementById("amRequired").style.display = opts.requireComments ? "inline" : "none";
+
+        const histArea = document.getElementById("amHistoryArea");
+        const histTitle = document.getElementById("amHistoryTitle");
+        if (opts.showHistory) {
+            histTitle.style.display = "block";
+            histArea.style.display = "block";
+            histArea.innerHTML = "<i>Loading...</i>";
+            showHistory(opts.historyType, opts.historyId);
+        } else {
+            histTitle.style.display = "none";
+            histArea.style.display = "none";
         }
 
-        function clearLoading(id) {
-            const msg = document.getElementById(id + "_loadingMsg");
-            if (msg) msg.remove();
-        }
+        m.classList.remove("hidden");
+        _modalConfirmCallback = opts.onConfirm;
+    }
 
-        function refreshMyTopics() {
-            renderLoading("myTopicsTable");
-            google.script.run
-                .withSuccessHandler(res => {
-                    clearLoading("myTopicsTable");
-                    const topics = res.topics || [];
-                    const articles = res.articles || [];
-                    document.getElementById("myTopicsTable").innerHTML = renderMyTopics(topics, articles);
-                })
-                .withFailureHandler(err => {
-                    clearLoading("myTopicsTable");
-                    document.getElementById("myTopicsTable").innerText = "Error: " + err.message;
-                })
-                .api_listMyTopics({ email: ctx.email });
-        }
-
-        function refreshTopicQueue() {
-            renderLoading("topicQueueTable");
-            google.script.run
-                .withSuccessHandler(res => {
-                    clearLoading("topicQueueTable");
-                    const topics = res.topics || [];
-                    document.getElementById("topicQueueTable").innerHTML = renderQueue(topics);
-                })
-                .withFailureHandler(err => {
-                    clearLoading("topicQueueTable");
-                    document.getElementById("topicQueueTable").innerText = "Error: " + err.message;
-                })
-                .api_listTopicQueue({ email: ctx.email });
-        }
-
-        function refreshArticleQueue() {
-            renderLoading("articleQueueTable");
-            google.script.run
-                .withSuccessHandler(res => {
-                    clearLoading("articleQueueTable");
-                    const articles = res.articles || [];
-                    document.getElementById("articleQueueTable").innerHTML = renderArticleQueue(articles);
-                })
-                .withFailureHandler(err => {
-                    clearLoading("articleQueueTable");
-                    document.getElementById("articleQueueTable").innerText = "Error: " + err.message;
-                })
-                .api_listArticleQueue({ email: ctx.email });
-        }
-
-        function refreshPublisherQueue() {
-            renderLoading("publisherQueueTable");
-            google.script.run
-                .withSuccessHandler(res => {
-                    clearLoading("publisherQueueTable");
-                    const articles = res.articles || [];
-                    document.getElementById("publisherQueueTable").innerHTML = renderPublisherQueue(articles);
-                })
-                .withFailureHandler(err => {
-                    clearLoading("publisherQueueTable");
-                    document.getElementById("publisherQueueTable").innerText = "Error: " + err.message;
-                })
-                .api_listPublisherQueue({ email: ctx.email });
-        }
-
-        function renderMyTopics(topics, articles) {
-            if (!topics.length) return "<i>No topics yet.</i>";
-            let html = "<table><thead><tr>" +
-                "<th>ID</th><th>Title</th><th>Page</th><th>Topic Status</th><th>Article Status</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>";
-
-            topics.forEach(t => {
-                const topicStatusPill = `<span class=\"pill ${t.status === 'Approved' ? 'ok' : (t.status === 'Changes Requested' ? 'warn' : '')}\">${t.status}</span>`;
-
-                // Find associated article(s)
-                const associatedArticles = articles.filter(a => a.topic_id === t.topic_id);
-                let articleStatus = "<i>None</i>";
-                let actions = `<button onclick=\"showHistory('TOPIC', '${t.topic_id}')\">History</button>`;
-
-                if (associatedArticles.length > 0) {
-                    const latestA = associatedArticles[associatedArticles.length - 1]; // Assume latest
-                    articleStatus = `<span class=\"pill\">${latestA.status}</span>`;
-                    if (latestA.status === 'Changes Requested') {
-                        actions += ` <button onclick=\"openResubmitArticle('${latestA.article_id}', '${escapeHtml(t.topic_title || '')}', '${escapeHtml(latestA.content_doc_url || '')}', '${escapeHtml(latestA.notes_to_reviewer || '')}')\" style=\"background:#fff3e0;\">Resubmit Article</button>`;
-                    }
-                }
-
-                if (t.status === 'Changes Requested') {
-                    actions += ` <button onclick=\"resubmitTopic('${t.topic_id}', '${escapeHtml(t.topic_title || '')}')\">Resubmit Topic</button>`;
-                }
-
-                if (t.status === 'Approved' && associatedArticles.length === 0) {
-                    actions += ` <button onclick=\"openSubmitArticle('${t.topic_id}', '${escapeHtml(t.topic_title || '')}')\" style=\"background:#e8f5e9; border:1px solid #c8e6c9;\">Submit Article</button>`;
-                }
-
-                if (t.status !== 'Approved' && t.status !== 'Discarded') {
-                    actions += ` <button onclick=\"discardTopic('${t.topic_id}')\" class=\"btn-discard\">Withdraw</button>`;
-                }
-
-                html += `<tr>
-            <td>${t.topic_id}</td>
-            <td>${escapeHtml(t.topic_title || '')}${t.content_doc_url ? `<br/><a href="${t.content_doc_url}" target="_blank" style="font-size:10px;">View GDoc</a>` : ''}</td>
-            <td>${t.page_id}</td>
-            <td>${topicStatusPill}</td>
-            <td>${articleStatus}</td>
-            <td>${fmtWait(t.submitted_at)} ago</td>
-            <td>${actions}</td>
-          </tr>`;
-            });
-            html += "</tbody></table>";
-            return html;
-        }
-
-        function renderQueue(topics) {
-            if (!topics.length) return "<i>No topics waiting.</i>";
-            let html = "<table><thead><tr>" +
-                "<th>ID</th><th>Title</th><th>Page</th><th>Author</th><th>Waiting</th><th>Notes</th><th>Actions</th></tr></thead><tbody>";
-            topics.forEach(t => {
-                let actions = `<button onclick=\"showHistory('TOPIC', '${t.topic_id}')\">History</button>`;
-                if (ctx.roles.is_super_admin) {
-                    actions += ` <button onclick=\"adminOverrideTopic('${t.topic_id}')\" style=\"background:#fff3e0;\">Override</button>`;
-                }
-
-                html += `<tr>
-            <td>${t.topic_id}</td>
-            <td>${escapeHtml(t.topic_title || '')}</td>
-            <td>${t.page_id}</td>
-            <td>${escapeHtml(t.author_email || '')}</td>
-            <td>${fmtWait(t.submitted_at)}</td>
-            <td><div style="font-size:11px; color:#666; max-height:50px; overflow:auto;">${escapeHtml(t.notes || '')}</div></td>
-            <td>
-              <button onclick=\"approveTopic('${t.topic_id}')\">Approve</button>
-              <button onclick=\"objectTopic('${t.topic_id}')\">Object</button>
-              ${actions}
-            </td>
-          </tr>`;
-            });
-            html += "</tbody></table>";
-            return html;
-        }
-
-        // ...
-
-        function renderArticleQueue(articles) {
-            if (!articles.length) return "<i>No articles waiting.</i>";
-            let html = "<table><thead><tr>" +
-                "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Status</th><th>Notes</th><th>Claimed By</th><th>Actions</th></tr></thead><tbody>";
-            articles.forEach(a => {
-                let actions = "";
-                // If unassigned, show Claim
-                if (!a.assigned_reviewer_email) {
-                    actions = `<button onclick=\"claimArticle('${a.article_id}')\">Claim Review</button>`;
-                } else if (a.assigned_reviewer_email === ctx.email) {
-                    // Claimed by me -> Review Actions
-                    actions = `<button onclick=\"reviewArticle('${a.article_id}', 'APPROVE')\">Approve</button> ` +
-                        `<button onclick=\"reviewArticle('${a.article_id}', 'CHANGES')\">Changes</button> ` +
-                        `<button onclick=\"reviewArticle('${a.article_id}', 'REJECT')\">Reject</button>`;
-                } else {
-                    actions = `<span class="mono">${a.assigned_reviewer_email}</span>`;
-                }
-
-                if (ctx.roles.is_super_admin) {
-                    if (a.assigned_reviewer_email) {
-                        actions += ` <button onclick=\"adminUnassign('${a.article_id}')\" style=\"background:#ffebee; margin-top:4px;\">Unassign</button>`;
-                    }
-                    actions += ` <button onclick=\"adminOverrideArticle('${a.article_id}')\" style=\"background:#fff3e0; margin-top:4px;\">Override</button>`;
-                }
-
-                html += `<tr>
-            <td>${a.article_id}</td>
-            <td>Topic ${a.topic_id}</td>
-            <td>${a.page_id}</td>
-            <td>${escapeHtml(a.author_email || '')}</td>
-             <td><span class=\"pill\">${a.status}</span></td>
-             <td><div style="font-size:11px; color:#666; max-height:50px; overflow:auto;">${escapeHtml(a.notes_to_reviewer || '')}</div></td>
-            <td>${a.assigned_reviewer_email || '<i>Unassigned</i>'}</td>
-            <td>${actions}
-                <div style="font-size:10px; margin-top:4px;">
-                    <a href="${a.content_doc_url}" target="_blank">View Doc</a> | 
-                    <a href="javascript:void(0)" onclick="showHistory('ARTICLE', '${a.article_id}')">History</a>
+    function refreshAdmin() {
+        document.getElementById("adminTable").innerHTML = `
+                <div style="padding:20px; color:var(--text-muted);">
+                    Admin features are integrated into the Topic and Article queues (Override/Unassign buttons).
                 </div>
-            </td>
-          </tr>`;
+            `;
+    }
+
+    function closeActionModal() {
+        document.getElementById("actionModal").classList.add("hidden");
+        _modalConfirmCallback = null;
+    }
+
+    document.getElementById("amBtnConfirm").onclick = function () {
+        if (_modalConfirmCallback) {
+            const btn = this;
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            _modalConfirmCallback(() => {
+                btn.disabled = false;
+                btn.innerText = originalText;
             });
-            html += "</tbody></table>";
-            return html;
         }
+    };
 
-        // --- GENERIC ACTION MODAL ---
-        let currentActionCallback = null;
-
-        function openActionModal(opts) {
-            document.getElementById("amTitle").innerText = opts.title || "Action";
-            document.getElementById("amContext").innerText = opts.context || "";
-            document.getElementById("amMsg").innerText = "";
-
-            // Title Input
-            const titleGroup = document.getElementById("amInputTitleGroup");
-            titleGroup.classList.toggle("hidden", !opts.showTitleInput);
-            if (opts.showTitleInput) document.getElementById("amInputTitle").value = opts.titleValue || "";
-
-            // URL Input
-            const urlGroup = document.getElementById("amInputUrlGroup");
-            urlGroup.classList.toggle("hidden", !opts.showUrlInput);
-            if (opts.showUrlInput) document.getElementById("amInputUrl").value = "";
-
-            // Comment Input
-            const commentGroup = document.getElementById("amInputCommentGroup");
-            commentGroup.classList.toggle("hidden", opts.showCommentInput === false);
-            document.getElementById("amInputCommentLabel").innerText = opts.commentLabel || "Comment / Notes";
-            document.getElementById("amInputComment").value = "";
-
-            currentActionCallback = opts.onConfirm;
-            document.getElementById("actionModal").classList.remove("hidden");
-            window.scrollTo(0, 0);
-        }
-
-        function closeActionModal() {
-            document.getElementById("actionModal").classList.add("hidden");
-            currentActionCallback = null;
-        }
-
-        document.getElementById("amBtnConfirm").onclick = function () {
-            if (currentActionCallback) {
-                const btn = this;
-                btn.disabled = true;
-                const originalText = btn.innerText;
-                btn.innerText = "Processing...";
-
-                // Wrap callback to re-enable
-                const wrappedCallback = () => {
-                    currentActionCallback(() => {
-                        btn.disabled = false;
-                        btn.innerText = originalText;
-                    });
-                };
-                wrappedCallback();
+    function approveTopic(topicId) {
+        openActionModal({
+            title: "Approve Topic",
+            label: "Approve Topic: " + topicId,
+            commentPlaceholder: "Optional approval note...",
+            onConfirm: (done) => {
+                const comment = document.getElementById("amComments").value.trim();
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshTopicQueue(); if (done) done(); })
+                    .api_topicApprove({ email: ctx.email, topic_id: topicId, comment });
             }
-        };
+        });
+    }
 
-        function approveTopic(topicId) {
-            openActionModal({
-                title: "Approve Topic " + topicId,
-                context: "Optional: Add a comment for the author.",
-                commentLabel: "Comment (optional)",
-                onConfirm: (done) => {
-                    const comment = document.getElementById("amInputComment").value;
-                    document.getElementById("amMsg").innerText = "Processing...";
-                    google.script.run
-                        .withSuccessHandler(() => { closeActionModal(); refreshTopicQueue(); if (done) done(); })
-                        .withFailureHandler(err => { document.getElementById("amMsg").innerText = err.message; if (done) done(); })
-                        .api_topicApprove({ email: ctx.email, topic_id: topicId, comment });
+    function requestEditTopic(topicId) {
+        openActionModal({
+            title: "Request edits for Topic " + topicId,
+            label: "Please explain what needs to be changed.",
+            requireComments: true,
+            commentPlaceholder: "Change Request (required)",
+            onConfirm: (done) => {
+                const comment = document.getElementById("amComments").value.trim();
+                if (!comment) {
+                    alert("Comment is required.");
+                    if (done) done();
+                    return;
                 }
-            });
-        }
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshTopicQueue(); if (done) done(); })
+                    .api_topicRequestEdit({ email: ctx.email, topic_id: topicId, comment });
+            }
+        });
+    }
 
-        function objectTopic(topicId) {
-            openActionModal({
-                title: "Object to Topic " + topicId,
-                context: "Please explain why changes are needed.",
-                commentLabel: "Objection Reason (required)",
-                onConfirm: (done) => {
-                    const comment = document.getElementById("amInputComment").value.trim();
-                    if (!comment) {
-                        document.getElementById("amMsg").innerText = "Comment is required.";
-                        if (done) done();
-                        return;
-                    }
-                    document.getElementById("amMsg").innerText = "Processing...";
-                    google.script.run
-                        .withSuccessHandler(() => { closeActionModal(); refreshTopicQueue(); if (done) done(); })
-                        .withFailureHandler(err => { document.getElementById("amMsg").innerText = err.message; if (done) done(); })
-                        .api_topicObject({ email: ctx.email, topic_id: topicId, comment });
+    function rejectTopic(topicId) {
+        openActionModal({
+            title: "Reject Topic " + topicId,
+            label: "Please explain why this topic is being rejected.",
+            requireComments: true,
+            commentPlaceholder: "Rejection Reason (required)",
+            onConfirm: (done) => {
+                const comment = document.getElementById("amComments").value.trim();
+                if (!comment) {
+                    alert("Comment is required.");
+                    if (done) done();
+                    return;
                 }
-            });
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshTopicQueue(); if (done) done(); })
+                    .api_topicReject({ email: ctx.email, topic_id: topicId, comment });
+            }
+        });
+    }
+
+    function showHistory(type, id) {
+        console.log("History requested for:", { type, id });
+        // The new openActionModal already handles setting up history display.
+        // This function is now primarily for fetching and rendering the history content.
+        const historyArea = document.getElementById("amHistoryArea");
+        if (historyArea) historyArea.innerHTML = "Loading records..."; // Update loading state
+
+        if (!ctx || !ctx.email) {
+            console.error("showHistory error: Context (ctx.email) is not available yet.");
+            if (historyArea) historyArea.innerText = "Error: Context not loaded. Wait or reload.";
+            return;
         }
 
-        function openHistoryModal(title) {
-            document.getElementById("hmTitle").innerText = title;
-            document.getElementById("hmMsg").innerText = "Loading history...";
-            document.getElementById("historyContent").innerHTML = "";
-            document.getElementById("historyModal").classList.remove("hidden");
-            document.getElementById("historyModal").style.display = "flex";
-        }
+        google.script.run
+            .withSuccessHandler(res => {
+                console.log("History Response:", res);
+                if (!historyArea) {
+                    console.error("History Error: amHistoryArea element not found in DOM");
+                    return;
+                }
+                if (!res || !res.ok) {
+                    historyArea.innerText = "Error: " + (res ? res.message : "No response from server");
+                    return;
+                }
+                const logs = res.logs || [];
+                if (logs.length === 0) {
+                    historyArea.innerHTML = "No history found.";
+                    return;
+                }
 
-        function closeHistoryModal() {
-            document.getElementById("historyModal").classList.add("hidden");
-            document.getElementById("historyModal").style.display = "none";
-        }
+                let html = "";
+                logs.forEach(l => {
+                    let dateStr = "";
+                    try {
+                        if (l.timestamp) {
+                            const dt = new Date(l.timestamp);
+                            dateStr = isNaN(dt.getTime()) ? String(l.timestamp) : dt.toLocaleString();
+                        }
+                    } catch (e) { dateStr = String(l.timestamp || ""); }
 
-        function showHistory(type, id) {
-            openHistoryModal("History for " + id);
-            google.script.run
-                .withSuccessHandler(res => {
-                    document.getElementById("hmMsg").innerText = "";
-                    const logs = res.logs || [];
-                    if (logs.length === 0) {
-                        document.getElementById("historyContent").innerHTML = "No history found.";
-                        return;
-                    }
-
-                    let html = "";
-                    logs.forEach(l => {
-                        const dateStr = l.timestamp ? new Date(l.timestamp).toLocaleString() : "";
-                        html += `
-                            <div class="history-item">
-                                <div class="history-date">${dateStr}</div>
-                                <div><span class="history-actor">${l.actor_email}</span> did <b>${l.action}</b></div>
+                    html += `
+                            <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                                <div style="font-size: 11px; color: #888;">${dateStr}</div>
+                                <div><span style="font-weight: bold;">${escapeHtml(l.actor_name || l.actor_email)}</span> did <b>${l.action}</b></div>
                                 <div style="font-size:12px; color:#555;">Status: ${l.from_status || 'Start'} &rarr; ${l.to_status}</div>
                                 ${l.notes ? `<div class="card" style="margin:5px 0 0 0; padding:5px; font-size:12px; background:#f9f9f9;">${escapeHtml(l.notes)}</div>` : ''}
                             </div>
                         `;
-                    });
-                    document.getElementById("historyContent").innerHTML = html;
-                })
-                .withFailureHandler(err => {
-                    document.getElementById("hmMsg").innerText = "Error: " + err.message;
-                })
-                .api_getHistory({ email: ctx.email, object_type: type, object_id: id });
+                });
+                historyArea.innerHTML = html;
+            })
+            .withFailureHandler(err => {
+                console.error("History google.script.run Failure:", err);
+                if (historyArea) historyArea.innerHTML = `<div style="color:red; padding:10px;">Error: ${escapeHtml(err.message || 'Unknown backend failure')}</div>`;
+            })
+            .api_getHistory({ email: ctx.email, object_type: type, object_id: id });
+    }
+
+    function resubmitTopic(topicId, currentTitle) {
+        openActionModal({
+            title: "Resubmit Topic " + topicId,
+            label: "Update Title & Add Notes",
+            showInput: true,
+            initialValue: currentTitle,
+            placeholder: "Topic Title",
+            commentPlaceholder: "Notes / Changes (optional)",
+            onConfirm: (done) => {
+                const newTitle = document.getElementById("amInput").value.trim();
+                const newNotes = document.getElementById("amComments").value.trim();
+                if (!newTitle) { alert("Title is required."); if (done) done(); return; }
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); alert("Resubmitted!"); refreshMyTopics(); if (done) done(); })
+                    .api_topicResubmit({ email: ctx.email, topic_id: topicId, topic_title: newTitle, notes: newNotes });
+            }
+        });
+    }
+
+    function discardTopic(topicId) {
+        if (!confirm("Are you sure you want to discard this topic?")) return;
+        google.script.run
+            .withSuccessHandler(() => {
+                refreshMyTopics();
+            })
+            .withFailureHandler(err => alert("Error: " + err.message))
+            .api_topicDiscard({ email: ctx.email, topic_id: topicId });
+    }
+
+    // --- SUBMIT ARTICLE MODAL ---
+    let currentTopicIdForArticle = null;
+
+    function openSubmitArticle(topicId, title) {
+        currentTopicIdForArticle = topicId;
+        document.getElementById("sa_topicId").innerText = topicId;
+        document.getElementById("sa_topicTitle").innerText = title;
+        document.getElementById("sa_contentUrl").value = "";
+        document.getElementById("sa_imageUrls").value = "";
+        document.getElementById("sa_language").value = "Thai";
+        document.getElementById("sa_notes").value = "";
+        document.getElementById("sa_readyCheck").checked = false;
+        document.getElementById("sa_msg").innerText = "";
+        document.getElementById("submitArticleModal").classList.remove("hidden");
+        window.scrollTo(0, 0);
+    }
+
+    function openResubmitArticle(articleId, topicTitle, contentUrl, notes) {
+        // Re-use submit article modal for resubmission
+        currentTopicIdForArticle = null; // We use articleId instead
+        document.getElementById("sa_topicId").innerText = "Resubmitting Article " + articleId;
+        document.getElementById("sa_topicTitle").innerText = topicTitle;
+        document.getElementById("sa_contentUrl").value = contentUrl;
+        document.getElementById("sa_notes").value = notes;
+        document.getElementById("sa_readyCheck").checked = true;
+        document.getElementById("sa_msg").innerText = "";
+
+        // Override the submit button behavior temporarily or just handle in doSubmitArticle
+        // For MVP simplicity, let's just use a window property
+        window._resubmittingArticleId = articleId;
+
+        document.getElementById("submitArticleModal").classList.remove("hidden");
+        window.scrollTo(0, 0);
+    }
+
+    function closeSubmitArticle() {
+        document.getElementById("submitArticleModal").classList.add("hidden");
+        currentTopicIdForArticle = null;
+        window._resubmittingArticleId = null;
+    }
+
+    function doSubmitArticle() {
+        const btn = document.getElementById("btnSubmitArt");
+        const url = document.getElementById("sa_contentUrl").value.trim();
+        if (!url) {
+            alert("Content URL is required.");
+            return;
+        }
+        if (!document.getElementById("sa_readyCheck").checked) {
+            alert("Please confirm the article is ready for review.");
+            return;
         }
 
-        function resubmitTopic(topicId, currentTitle) {
-            openActionModal({
-                title: "Resubmit Topic " + topicId,
-                context: "You can update the title and add notes about your changes.",
-                showTitleInput: true,
-                titleValue: currentTitle,
-                commentLabel: "Notes / Changes (optional)",
-                onConfirm: (done) => {
-                    const newTitle = document.getElementById("amInputTitle").value.trim();
-                    const newNotes = document.getElementById("amInputComment").value.trim();
-                    document.getElementById("amMsg").innerText = "Processing...";
-                    google.script.run
-                        .withSuccessHandler(() => { closeActionModal(); alert("Resubmitted!"); refreshMyTopics(); if (done) done(); })
-                        .withFailureHandler(err => { document.getElementById("amMsg").innerText = err.message; if (done) done(); })
-                        .api_topicResubmit({ email: ctx.email, topic_id: topicId, topic_title: newTitle, notes: newNotes });
+        btn.disabled = true;
+        document.getElementById("sa_msg").innerText = "Submitting...";
+
+        const payload = {
+            email: ctx.email,
+            content_doc_url: url,
+            notes_to_reviewer: document.getElementById("sa_notes").value,
+            image_urls: document.getElementById("sa_imageUrls").value,
+            content_language: document.getElementById("sa_language").value
+        };
+
+        const isResubmit = !!window._resubmittingArticleId;
+        if (isResubmit) {
+            payload.article_id = window._resubmittingArticleId;
+        } else {
+            payload.topic_id = currentTopicIdForArticle;
+        }
+
+        google.script.run
+            .withSuccessHandler(res => {
+                btn.disabled = false;
+                alert(isResubmit ? "Article resubmitted!" : "Article submitted! ID: " + res.article_id);
+                closeSubmitArticle();
+                refreshMyTopics();
+            })
+            .withFailureHandler(err => {
+                btn.disabled = false;
+                document.getElementById("sa_msg").innerText = "Error: " + err.message;
+            })[isResubmit ? "api_articleResubmit" : "api_submitArticle"](payload);
+    }
+
+    // --- ARTICLE QUEUES ---
+
+
+
+    // --- ACTIONS ---
+
+    function claimArticle(id) {
+        let warn = "";
+        if (ctx.ooo && ctx.ooo.is_out_of_office) {
+            warn = "\n\n⚠️ NOTE: You are currently marked as Out of Office (until " + (ctx.ooo.ooo_until || "further notice") + ").";
+        }
+        if (!confirm("Claim this article for review?" + warn)) return;
+        google.script.run
+            .withSuccessHandler(() => refreshArticleQueue())
+            .withFailureHandler(err => alert("Error: " + err.message))
+            .api_claimArticle({ email: ctx.email, article_id: id });
+    }
+
+    function reviewArticle(id, decision) {
+        const requiredData = (decision === 'CHANGES' || decision === 'REJECT');
+        let mTitle = decision === 'APPROVE' ? 'Approve' : (decision === 'CHANGES' ? 'Request edits for' : 'Reject');
+
+        openActionModal({
+            title: mTitle + " Article",
+            label: "Article: " + id,
+            requireComments: requiredData,
+            commentPlaceholder: "Feedback to author" + (requiredData ? " (required)" : " (optional)"),
+            onConfirm: (done) => {
+                const commentData = document.getElementById("amComments").value.trim();
+                if (requiredData && !commentData) {
+                    alert("Comment is required.");
+                    if (done) done();
+                    return;
                 }
-            });
-        }
-
-        function discardTopic(topicId) {
-            if (!confirm("Are you sure you want to discard this topic?")) return;
-            google.script.run
-                .withSuccessHandler(() => {
-                    refreshMyTopics();
-                })
-                .withFailureHandler(err => alert("Error: " + err.message))
-                .api_topicDiscard({ email: ctx.email, topic_id: topicId });
-        }
-
-        // --- SUBMIT ARTICLE MODAL ---
-        // (existing submit article code stays as is)
-
-        // ... (Skipping over Submit Article code which is already there) ...
-
-        // This tool call only supports contiguous block replacement. 
-        // I need to be careful not to delete the Submit Article code if I'm replacing a range that includes it.
-        // Wait, where is `markPosted`? It's AFTER the Submit Article code in the original file?
-        // Let's check the line numbers again. `approveTopic` is around 430. `submitArticle` is around 487. `refreshArticleQueue` is around 533. `markPosted` is around 631.
-        // They are scattered. I should edit them individually or in blocks.
-
-        // This tool call attempts to replace from 430 to 638? That's huge and risky.
-        // Better to replace smaller chunks.
-
-
-        // --- SUBMIT ARTICLE MODAL ---
-        let currentTopicIdForArticle = null;
-
-        function openSubmitArticle(topicId, title) {
-            currentTopicIdForArticle = topicId;
-            document.getElementById("sa_topicId").innerText = topicId;
-            document.getElementById("sa_topicTitle").innerText = title;
-            document.getElementById("sa_contentUrl").value = "";
-            document.getElementById("sa_imageUrls").value = "";
-            document.getElementById("sa_postingDt").value = "";
-            document.getElementById("sa_language").value = "Thai";
-            document.getElementById("sa_notes").value = "";
-            document.getElementById("sa_readyCheck").checked = false;
-            document.getElementById("sa_msg").innerText = "";
-            document.getElementById("submitArticleModal").classList.remove("hidden");
-            window.scrollTo(0, 0);
-        }
-
-        function openResubmitArticle(articleId, topicTitle, contentUrl, notes) {
-            // Re-use submit article modal for resubmission
-            currentTopicIdForArticle = null; // We use articleId instead
-            document.getElementById("sa_topicId").innerText = "Resubmitting Article " + articleId;
-            document.getElementById("sa_topicTitle").innerText = topicTitle;
-            document.getElementById("sa_contentUrl").value = contentUrl;
-            document.getElementById("sa_notes").value = notes;
-            document.getElementById("sa_readyCheck").checked = true;
-            document.getElementById("sa_msg").innerText = "";
-
-            // Override the submit button behavior temporarily or just handle in doSubmitArticle
-            // For MVP simplicity, let's just use a window property
-            window._resubmittingArticleId = articleId;
-
-            document.getElementById("submitArticleModal").classList.remove("hidden");
-            window.scrollTo(0, 0);
-        }
-
-        function closeSubmitArticle() {
-            document.getElementById("submitArticleModal").classList.add("hidden");
-            currentTopicIdForArticle = null;
-            window._resubmittingArticleId = null;
-        }
-
-        function doSubmitArticle() {
-            const btn = event.target;
-            const url = document.getElementById("sa_contentUrl").value.trim();
-            if (!url) {
-                alert("Content URL is required.");
-                return;
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshArticleQueue(); if (done) done(); })
+                    .withFailureHandler(err => { alert(err.message); if (done) done(); })
+                    .api_reviewArticle({ email: ctx.email, article_id: id, decision, comment: commentData });
             }
-            if (!document.getElementById("sa_readyCheck").checked) {
-                alert("Please confirm the article is ready for review.");
-                return;
-            }
+        });
+    }
 
-            btn.disabled = true;
-            document.getElementById("sa_msg").innerText = "Submitting...";
-
-            const payload = {
-                email: ctx.email,
-                content_doc_url: url,
-                notes_to_reviewer: document.getElementById("sa_notes").value,
-                image_urls: document.getElementById("sa_imageUrls").value,
-                preferred_posting_datetime: document.getElementById("sa_postingDt").value,
-                content_language: document.getElementById("sa_language").value
-            };
-
-            const isResubmit = !!window._resubmittingArticleId;
-            if (isResubmit) {
-                payload.article_id = window._resubmittingArticleId;
-            } else {
-                payload.topic_id = currentTopicIdForArticle;
-            }
-
-            google.script.run
-                .withSuccessHandler(res => {
-                    btn.disabled = false;
-                    alert(isResubmit ? "Article resubmitted!" : "Article submitted! ID: " + res.article_id);
-                    closeSubmitArticle();
-                    refreshMyTopics();
-                })
-                .withFailureHandler(err => {
-                    btn.disabled = false;
-                    document.getElementById("sa_msg").innerText = "Error: " + err.message;
-                })
-            [isResubmit ? "api_articleResubmit" : "api_submitArticle"](payload);
-        }
-
-        // --- ARTICLE QUEUES ---
-
-        function refreshArticleQueue() {
-            renderLoading("articleQueueTable");
-            google.script.run
-                .withSuccessHandler(res => {
-                    document.getElementById("articleQueueTable").innerHTML = renderArticleQueue(res.queue || []);
-                })
-                .withFailureHandler(err => document.getElementById("articleQueueTable").innerText = "Error: " + err.message)
-                .api_listArticles({ email: ctx.email });
-        }
-
-        function refreshPublisherQueue() {
-            renderLoading("publisherQueueTable");
-            google.script.run
-                .withSuccessHandler(res => {
-                    document.getElementById("publisherQueueTable").innerHTML = renderPublisherQueue(res.publisherQueue || []);
-                })
-                .withFailureHandler(err => document.getElementById("publisherQueueTable").innerText = "Error: " + err.message)
-                .api_listArticles({ email: ctx.email });
-        }
-
-        function renderArticleQueue(articles) {
-            if (!articles.length) return "<i>No articles waiting.</i>";
-            let html = "<table><thead><tr>" +
-                "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Status</th><th>Claimed By</th><th>Actions</th></tr></thead><tbody>";
-            articles.forEach(a => {
-                let actions = "";
-                // If unassigned, show Claim
-                if (!a.assigned_reviewer_email) {
-                    actions = `<button onclick=\"claimArticle('${a.article_id}')\">Claim Review</button>`;
-                } else if (a.assigned_reviewer_email === ctx.email) {
-                    // Claimed by me -> Review Actions
-                    actions = `<button onclick=\"reviewArticle('${a.article_id}', 'APPROVE')\">Approve</button> ` +
-                        `<button onclick=\"reviewArticle('${a.article_id}', 'CHANGES')\">Changes</button> ` +
-                        `<button onclick=\"reviewArticle('${a.article_id}', 'REJECT')\">Reject</button>`;
-                } else {
-                    actions = `<span class="mono">${a.assigned_reviewer_email}</span>`;
+    function markPosted(id) {
+        openActionModal({
+            title: "Mark as Posted",
+            label: "Article: " + id,
+            showInput: true,
+            placeholder: "Final Posted URL (https://...)",
+            requireComments: false,
+            commentPlaceholder: "Optional notes...",
+            onConfirm: (done) => {
+                const url = document.getElementById("amInput").value.trim();
+                if (!url) {
+                    alert("URL is required.");
+                    if (done) done();
+                    return;
                 }
-
-                html += `<tr>
-            <td>${a.article_id}</td>
-            <td>Topic ${a.topic_id}</td>
-            <td>${a.page_id}</td>
-            <td>${escapeHtml(a.author_email || '')}</td>
-             <td><span class=\"pill\">${a.status}</span></td>
-            <td>${a.assigned_reviewer_email || '<i>Unassigned</i>'}</td>
-            <td>${actions}
-                <div style="font-size:10px;"><a href="${a.content_doc_url}" target="_blank">View Doc</a></div>
-            </td>
-          </tr>`;
-            });
-            html += "</tbody></table>";
-            return html;
-        }
-
-        function renderPublisherQueue(articles) {
-            if (!articles.length) return "<i>No articles ready to post.</i>";
-            let html = "<table><thead><tr>" +
-                "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Status</th><th>Actions</th></tr></thead><tbody>";
-            articles.forEach(a => {
-                let actions = `<button onclick=\"markPosted('${a.article_id}')\">Mark Posted</button>`;
-                html += `<tr>
-            <td>${a.article_id}</td>
-             <td>Topic ${a.topic_id}</td>
-            <td>${a.page_id}</td>
-            <td>${escapeHtml(a.author_email || '')}</td>
-             <td><span class=\"pill ok\">${a.status}</span></td>
-            <td>${actions}
-                <div style="font-size:10px; margin-top:4px;">
-                    <a href="${a.content_doc_url}" target="_blank">View Doc</a> | 
-                    <a href="javascript:void(0)" onclick="showHistory('ARTICLE', '${a.article_id}')">History</a>
-                </div>
-            </td>
-          </tr>`;
-            });
-            html += "</tbody></table>";
-            return html;
-        }
-
-        // --- ACTIONS ---
-
-        function claimArticle(id) {
-            let warn = "";
-            if (ctx.ooo && ctx.ooo.is_out_of_office) {
-                warn = "\n\n⚠️ NOTE: You are currently marked as Out of Office (until " + (ctx.ooo.ooo_until || "further notice") + ").";
+                const note = document.getElementById("amComments").value.trim();
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshPublisherQueue(); if (done) done(); })
+                    .withFailureHandler(err => { alert(err.message); if (done) done(); })
+                    .api_markPosted({ email: ctx.email, article_id: id, posted_url: url, notes: note });
             }
-            if (!confirm("Claim this article for review?" + warn)) return;
-            google.script.run
-                .withSuccessHandler(() => refreshArticleQueue())
-                .withFailureHandler(err => alert("Error: " + err.message))
-                .api_claimArticle({ email: ctx.email, article_id: id });
-        }
+        });
+    }
 
-        function reviewArticle(id, decision) {
-            const required = (decision === 'CHANGES' || decision === 'REJECT');
-            openActionModal({
-                title: decision + " Article " + id,
-                context: required ? "Please provide a reason." : "Optional comment.",
-                commentLabel: "Comment" + (required ? " (required)" : " (optional)"),
-                onConfirm: (done) => {
-                    const comment = document.getElementById("amInputComment").value.trim();
-                    if (required && !comment) {
-                        document.getElementById("amMsg").innerText = "Comment is required.";
-                        if (done) done();
-                        return;
-                    }
-                    document.getElementById("amMsg").innerText = "Processing...";
-                    google.script.run
-                        .withSuccessHandler(() => { closeActionModal(); refreshArticleQueue(); if (done) done(); })
-                        .withFailureHandler(err => { document.getElementById("amMsg").innerText = err.message; if (done) done(); })
-                        .api_reviewArticle({ email: ctx.email, article_id: id, decision, comment });
-                }
-            });
-        }
-
-        function markPosted(id) {
-            openActionModal({
-                title: "Mark Article " + id + " as Posted",
-                context: "Please provide the final URL.",
-                showUrlInput: true,
-                showCommentInput: false,
-                onConfirm: (done) => {
-                    const url = document.getElementById("amInputUrl").value.trim();
-                    if (!url) {
-                        document.getElementById("amMsg").innerText = "URL is required.";
-                        if (done) done();
-                        return;
-                    }
-                    document.getElementById("amMsg").innerText = "Processing...";
-                    google.script.run
-                        .withSuccessHandler(() => { closeActionModal(); refreshPublisherQueue(); if (done) done(); })
-                        .withFailureHandler(err => { document.getElementById("amMsg").innerText = err.message; if (done) done(); })
-                        .api_markPosted({ email: ctx.email, article_id: id, posted_url: url });
-                }
-            });
-        }
-
-        // --- ADMIN FUNCTIONS ---
-
-        function refreshAdmin() {
-            // For MVP, Admin tab just shows some summary or lets them trigger actions manually.
-            // Actually most admin actions are context-sensitive (Unassign/Override inside queues).
-            document.getElementById("adminTable").innerHTML = "<p>Admin features are integrated into the Topic and Article queues (Override/Unassign buttons).</p>";
-        }
-
-        function adminUnassign(id) {
-            const reason = prompt("Reason for unassigning?");
-            if (!reason) return;
-            google.script.run
-                .withSuccessHandler(() => { alert("Unassigned."); refreshArticleQueue(); })
-                .withFailureHandler(err => alert("Error: " + err.message))
-                .api_adminUnassignArticle({ email: ctx.email, article_id: id, reason });
-        }
-
-        function adminOverrideArticle(id) {
-            const status = prompt("New status? (Under Review, Changes Requested, Ready to Post, Posted, Rejected)");
-            if (!status) return;
-            const reason = prompt("Reason for override?");
-            if (!reason) return;
-            google.script.run
-                .withSuccessHandler(() => { alert("Overridden."); refreshArticleQueue(); })
-                .withFailureHandler(err => alert("Error: " + err.message))
-                .api_adminOverrideArticle({ email: ctx.email, article_id: id, status, reason });
-        }
-
-        function adminOverrideTopic(id) {
-            const status = prompt("New status? (Under Review, Changes Requested, Approved, Discarded)");
-            if (!status) return;
-            const reason = prompt("Reason for override?");
-            if (!reason) return;
-            google.script.run
-                .withSuccessHandler(() => { alert("Overridden."); refreshTopicQueue(); refreshMyTopics(); })
-                .withFailureHandler(err => alert("Error: " + err.message))
-                .api_adminOverrideTopic({ email: ctx.email, topic_id: id, status, reason });
-        }
-
-        function testSlack() {
-            const page_id = document.getElementById("testSlackPage").value.trim();
-            const type = document.getElementById("testSlackType").value;
-            if (!page_id) {
-                alert("Please enter a Page ID.");
-                return;
+    function adminUnassign(id) {
+        openActionModal({
+            title: "Admin: Unassign Article",
+            label: "Article: " + id,
+            requireComments: true,
+            commentPlaceholder: "Reason for unassigning (required)",
+            onConfirm: (done) => {
+                const rsn = document.getElementById("amComments").value.trim();
+                if (!rsn) { alert("Reason is required."); if (done) done(); return; }
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshArticleQueue(); if (done) done(); })
+                    .withFailureHandler(err => { alert(err.message); if (done) done(); })
+                    .api_adminUnassignArticle({ email: ctx.email, article_id: id, reason: rsn });
             }
-            document.getElementById("testSlackMsg").innerText = "Sending...";
-            google.script.run
-                .withSuccessHandler(res => {
-                    document.getElementById("testSlackMsg").style.color = "green";
-                    document.getElementById("testSlackMsg").innerText = res.message + " (" + (res.details || "") + ")";
-                })
-                .withFailureHandler(err => {
-                    document.getElementById("testSlackMsg").style.color = "red";
-                    document.getElementById("testSlackMsg").innerText = "Error: " + err.message;
-                })
-                .api_testSlack({ email: ctx.email, page_id, type });
-        }
+        });
+    }
 
-        function escapeHtml(s) {
-            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
+    function adminOverrideArticle(id) {
+        openActionModal({
+            title: "Admin: Status Override",
+            label: "Article: " + id,
+            showInput: true,
+            placeholder: "New status (e.g. Ready to Post)",
+            requireComments: true,
+            commentPlaceholder: "Reason for override (required)",
+            onConfirm: (done) => {
+                const stat = document.getElementById("amInput").value.trim();
+                const rsn = document.getElementById("amComments").value.trim();
+                if (!stat || !rsn) { alert("Status and Reason are required."); if (done) done(); return; }
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshArticleQueue(); if (done) done(); })
+                    .withFailureHandler(err => { alert(err.message); if (done) done(); })
+                    .api_adminOverrideArticle({ email: ctx.email, article_id: id, status: stat, reason: rsn });
+            }
+        });
+    }
 
+    function adminOverrideTopic(id) {
+        openActionModal({
+            title: "Admin: Status Override",
+            label: "Topic: " + id,
+            showInput: true,
+            placeholder: "New status (e.g. Approved)",
+            requireComments: true,
+            commentPlaceholder: "Reason for override (required)",
+            onConfirm: (done) => {
+                const stat = document.getElementById("amInput").value.trim();
+                const rsn = document.getElementById("amComments").value.trim();
+                if (!stat || !rsn) { alert("Status and Reason are required."); if (done) done(); return; }
+                google.script.run
+                    .withSuccessHandler(() => { closeActionModal(); refreshTopicQueue(); refreshMyTopics(); if (done) done(); })
+                    .withFailureHandler(err => { alert(err.message); if (done) done(); })
+                    .api_adminOverrideTopic({ email: ctx.email, topic_id: id, status: stat, reason: rsn });
+            }
+        });
+    }
+
+    function testSlack() {
+        const page_id = document.getElementById("testSlackPage").value.trim();
+        const type = document.getElementById("testSlackType").value;
+        if (!page_id) {
+            alert("Please enter a Page ID.");
+            return;
+        }
+        document.getElementById("testSlackMsg").innerText = "Sending...";
+        google.script.run
+            .withSuccessHandler(res => {
+                document.getElementById("testSlackMsg").style.color = "green";
+                document.getElementById("testSlackMsg").innerText = res.message + " (" + (res.details || "") + ")";
+            })
+            .withFailureHandler(err => {
+                document.getElementById("testSlackMsg").style.color = "red";
+                document.getElementById("testSlackMsg").innerText = "Error: " + err.message;
+            })
+            .api_testSlack({ email: ctx.email, page_id, type });
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    try {
+        console.log("Portal initializing...");
         bootstrap();
-    </script>
+    } catch (e) {
+        console.error("Initialization Error:", e);
+        const el = document.getElementById('debugOut');
+        if (el) el.innerText += '\nInit Crash: ' + e.message;
+        document.getElementById("authStatus").innerText = "Fatal Error: " + e.message;
+    }
+</script>
 </body>
 
 </html>

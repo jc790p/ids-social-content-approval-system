@@ -1,6 +1,7 @@
 /***************
  * CONFIG
  ***************/
+var __MEMO = {};
 const CFG = {
     SHEETS: {
         USERS: "Users",
@@ -18,6 +19,7 @@ const CFG = {
         CHANGES: "Changes Requested",
         APPROVED: "Approved",
         DISCARDED: "Discarded",
+        REJECTED: "Rejected",
         DRAFT: "Draft",
     },
     ID_YEAR: "2026",
@@ -59,37 +61,47 @@ function doGet() {
  * API: AUTH/CONTEXT
  ***************/
 function api_getContext(clientEmail) {
-    // Consumer Gmail often can't be auto-detected in web apps.
-    // We prioritize the client-provided email to allow "switching users" (masquerading) for the MVP,
-    // especially since session detection is flaky for personal accounts.
-    const sessionEmail = (Session.getActiveUser && Session.getActiveUser().getEmail()) || "";
-    const email = ((clientEmail && clientEmail.trim()) || sessionEmail || "").trim().toLowerCase();
+    try {
+        // Consumer Gmail often can't be auto-detected in web apps.
+        // We prioritize the client-provided email to allow "switching users" (masquerading) for the MVP,
+        // especially since session detection is flaky for personal accounts.
+        const sessionEmail = (Session.getActiveUser && Session.getActiveUser().getEmail()) || "";
+        const email = ((clientEmail && clientEmail.trim()) || sessionEmail || "").trim().toLowerCase();
 
-    if (!email) {
-        return { ok: false, code: "NO_EMAIL", message: "No email detected. Please enter your email." };
+        if (!email) {
+            return { ok: false, code: "NO_EMAIL", message: "No email detected. Please enter your email." };
+        }
+
+        const user = getUserByEmail_(email);
+        if (!user || user.is_active !== "Y") {
+            return { ok: false, code: "NOT_ALLOWED", message: "Your email is not allowlisted (Users tab) or not active." };
+        }
+
+        return {
+            ok: true,
+            email,
+            name: user.name || email,
+            roles: {
+                is_super_admin: user.is_super_admin === "Y",
+                is_author: user.is_author === "Y",
+                is_article_reviewer: user.is_article_reviewer === "Y",
+                is_publisher: user.is_publisher === "Y",
+            },
+            ooo: {
+                is_out_of_office: user.is_out_of_office === "Y",
+                ooo_until: user.ooo_until || ""
+            },
+            pages: listPages_(),
+        };
+    } catch (error) {
+        // Catch any server-side errors and return them to the client
+        return {
+            ok: false,
+            code: "SERVER_ERROR",
+            message: "Server error: " + error.message,
+            stack: error.stack
+        };
     }
-
-    const user = getUserByEmail_(email);
-    if (!user || user.is_active !== "Y") {
-        return { ok: false, code: "NOT_ALLOWED", message: "Your email is not allowlisted (Users tab) or not active." };
-    }
-
-    return {
-        ok: true,
-        email,
-        name: user.name || email,
-        roles: {
-            is_super_admin: user.is_super_admin === "Y",
-            is_author: user.is_author === "Y",
-            is_article_reviewer: user.is_article_reviewer === "Y",
-            is_publisher: user.is_publisher === "Y",
-        },
-        ooo: {
-            is_out_of_office: user.is_out_of_office === "Y",
-            ooo_until: user.ooo_until || ""
-        },
-        pages: listPages_(),
-    };
 }
 
 /***************
@@ -156,8 +168,15 @@ function api_submitTopic(payload) {
 
 function api_listMyTopics(payload) {
     const email = mustAllow_(payload.email);
-    const topics = listTopics_({ author_email: email });
-    const articles = listArticles_({ author_email: email });
+    const topics = listTopics_({ author_email: email }).map(t => {
+        t.author_name = getUserByEmail_(t.author_email)?.name || t.author_email;
+        return t;
+    });
+    const articles = listArticles_({ author_email: email }).map(a => {
+        a.author_name = getUserByEmail_(a.author_email)?.name || a.author_email;
+        a.reviewer_name = a.assigned_reviewer_email ? (getUserByEmail_(a.assigned_reviewer_email)?.name || a.assigned_reviewer_email) : "";
+        return a;
+    });
     return { ok: true, topics, articles };
 }
 
@@ -165,7 +184,10 @@ function api_listTopicQueue(payload) {
     const email = mustAllow_(payload.email);
     let topics = listTopics_({ status: CFG.TOPIC_STATUSES.UNDER_REVIEW }).filter(
         (t) => (t.author_email || "").toLowerCase() !== email.toLowerCase()
-    );
+    ).map(t => {
+        t.author_name = getUserByEmail_(t.author_email)?.name || t.author_email;
+        return t;
+    });
 
     // Filter out topics already reviewed by this user in the current cycle
     const reviewsSh = sheet_(CFG.SHEETS.TOPIC_REVIEWS);
@@ -208,20 +230,44 @@ function api_topicApprove(payload) {
     return { ok: true };
 }
 
-function api_topicObject(payload) {
+function api_topicRequestEdit(payload) {
     const email = mustAllow_(payload.email);
     const topic_id = (payload.topic_id || "").trim();
     const comment = (payload.comment || "").trim();
-    if (!comment) throw new Error("Comment is required when objecting.");
+    if (!comment) throw new Error("Comment is required when requesting edits.");
 
     const t = getTopic_(topic_id);
     if (!t) throw new Error("Topic not found.");
     ensureTopicReviewEligible_(email, t);
 
-    writeTopicReview_(topic_id, Number(t.cycle_no), email, "OBJECT", comment);
-    setTopicStatus_(topic_id, CFG.TOPIC_STATUSES.CHANGES, email, "OBJECT: " + comment);
+    writeTopicReview_(topic_id, Number(t.cycle_no), email, "EDIT", comment);
+    setTopicStatus_(topic_id, CFG.TOPIC_STATUSES.CHANGES, email, "REQUEST EDIT: " + comment);
 
     const slackMsg = getSlackMessage_("TOPIC_OBJECT", {
+        topic_id,
+        author: t.author_email,
+        reviewer: email,
+        comment
+    });
+    sendSlackNotification_(t.page_id, CFG.NOTIFICATION_TYPES.TOPIC_REVIEW, slackMsg);
+
+    return { ok: true };
+}
+
+function api_topicReject(payload) {
+    const email = mustAllow_(payload.email);
+    const topic_id = (payload.topic_id || "").trim();
+    const comment = (payload.comment || "").trim();
+    if (!comment) throw new Error("Comment is required when rejecting.");
+
+    const t = getTopic_(topic_id);
+    if (!t) throw new Error("Topic not found.");
+    ensureTopicReviewEligible_(email, t);
+
+    writeTopicReview_(topic_id, Number(t.cycle_no), email, "REJECT", comment);
+    setTopicStatus_(topic_id, CFG.TOPIC_STATUSES.REJECTED, email, "REJECT: " + comment);
+
+    const slackMsg = getSlackMessage_("TOPIC_REJECT", {
         topic_id,
         author: t.author_email,
         reviewer: email,
@@ -369,14 +415,23 @@ function api_submitArticle(payload) {
 
 function api_listArticles(payload) {
     const email = mustAllow_(payload.email);
-    // Basic filter: Queue (Under Review + Unassigned OR Assigned to Me)
-    // Publisher Queue (Ready to Post)
 
     const articles = listArticles_({});
+    const topics = listTopics_({});
+    const topicMap = {};
+    topics.forEach(t => {
+        topicMap[t.topic_id] = t.topic_title;
+    });
+
     const queue = [];
     const publisherQueue = [];
 
     articles.forEach(a => {
+        // Build resolved names for both queues
+        a.author_name = getUserByEmail_(a.author_email)?.name || a.author_email;
+        a.reviewer_name = a.assigned_reviewer_email ? (getUserByEmail_(a.assigned_reviewer_email)?.name || a.assigned_reviewer_email) : "";
+        a.topic_title = topicMap[a.topic_id] || ("Topic " + a.topic_id);
+
         // Article Review Queue Logic
         if (a.status === CFG.ARTICLE_STATUSES.UNDER_REVIEW || a.status === CFG.ARTICLE_STATUSES.CHANGES) {
             // EXCLUDE OWN ARTICLES from review
@@ -384,7 +439,7 @@ function api_listArticles(payload) {
                 return;
             }
 
-            // If unassigned, anyone eligible can see (MVP: all article reviewers see unassigned)
+            // If unassigned, anyone eligible can see
             if (!a.assigned_reviewer_email) {
                 queue.push(a);
             } else if (a.assigned_reviewer_email.toLowerCase() === email.toLowerCase()) {
@@ -400,6 +455,53 @@ function api_listArticles(payload) {
     });
 
     return { ok: true, queue, publisherQueue };
+}
+
+function api_getHistory(payload) {
+    try {
+        const email = mustAllow_(payload.email);
+        const object_type = (payload.object_type || "").trim().toUpperCase(); // TOPIC or ARTICLE
+        const object_id = (payload.object_id || "").trim();
+
+        if (!object_id) throw new Error("Missing ID.");
+
+        const sh = sheet_(CFG.SHEETS.AUDIT);
+        const data = sh.getDataRange().getValues();
+        const cols = headers_(sh);
+
+        const logs = [];
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const rowType = String(row[cols["object_type"] - 1] || "").trim().toUpperCase();
+            const rowId = String(row[(cols["object_id"] || 0) - 1] || "").trim();
+
+            if (rowType === object_type && rowId === object_id) {
+                const actorEmail = String(row[(cols["actor_email"] || 0) - 1] || "").trim();
+                const rawTs = row[(cols["timestamp"] || 0) - 1];
+                let ts = "";
+                if (rawTs instanceof Date) {
+                    ts = rawTs.toISOString();
+                } else if (rawTs) {
+                    ts = String(rawTs);
+                }
+
+                logs.push({
+                    timestamp: ts,
+                    action: String(row[(cols["action"] || 0) - 1] || ""),
+                    from_status: String(row[(cols["from_status"] || 0) - 1] || ""),
+                    to_status: String(row[(cols["to_status"] || 0) - 1] || ""),
+                    actor_email: actorEmail,
+                    actor_name: getUserByEmail_(actorEmail)?.name || actorEmail,
+                    notes: String(row[(cols["notes"] || 0) - 1] || "")
+                });
+            }
+        }
+
+        // Return newest first
+        return { ok: true, logs: logs.reverse() };
+    } catch (e) {
+        return { ok: false, message: e.message };
+    }
 }
 
 function api_claimArticle(payload) {
@@ -790,7 +892,7 @@ function ensureTopicReviewEligible_(reviewerEmail, topic) {
 /***************
  * STORAGE HELPERS
  ***************/
-const __MEMO = {};
+// __MEMO moved to top
 
 function getSpreadsheet_() {
     if (__MEMO.ss) return __MEMO.ss;
@@ -1090,28 +1192,38 @@ function mustAllow_(emailRaw) {
 function getUserByEmail_(email) {
     if (!email) return null;
     const cleanEmail = email.trim().toLowerCase();
-    const memoKey = "user_" + cleanEmail;
-    if (__MEMO[memoKey]) return __MEMO[memoKey];
 
-    const sh = sheet_(CFG.SHEETS.USERS);
-    const cols = headers_(sh);
-    const rowIndex = findRowByValue_(sh, cols, "email", cleanEmail);
-    if (rowIndex === -1) return null;
-    const row = sh.getRange(rowIndex, 1, 1, sh.getLastColumn()).getValues()[0];
-    const user = {
-        email: String(row[(cols["email"] || 0) - 1] || "").trim().toLowerCase(),
-        name: String(row[(cols["name"] || 0) - 1] || "").trim(),
-        is_active: String(row[(cols["is_active"] || 0) - 1] || "").trim().toUpperCase(),
-        is_author: String(row[(cols["is_author"] || 0) - 1] || "").trim().toUpperCase(),
-        is_article_reviewer: String(row[(cols["is_article_reviewer"] || 0) - 1] || "").trim().toUpperCase(),
-        is_publisher: String(row[(cols["is_publisher"] || 0) - 1] || "").trim().toUpperCase(),
-        is_super_admin: String(row[(cols["is_super_admin"] || 0) - 1] || "").trim().toUpperCase(),
-        is_out_of_office: String(row[(cols["is_out_of_office"] || 0) - 1] || "").trim().toUpperCase(),
-        ooo_until: row[(cols["ooo_until"] || 0) - 1] || "",
-        slack_user_id: String(row[(cols["slack_user_id"] || 0) - 1] || "").trim(),
-    };
-    __MEMO[memoKey] = user;
-    return user;
+    // Use __MEMO to cache the entire map once per execution
+    if (!__MEMO["_users_map"]) {
+        const sh = sheet_(CFG.SHEETS.USERS);
+        const data = sh.getDataRange().getValues();
+        const cols = headers_(sh);
+        const map = {};
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const emailIdx = (cols["email"] || 0) - 1;
+            if (emailIdx < 0) continue;
+
+            const uEmail = String(row[emailIdx] || "").trim().toLowerCase();
+            if (uEmail) {
+                map[uEmail] = {
+                    email: uEmail,
+                    name: String(row[(cols["name"] || 0) - 1] || "").trim(),
+                    is_active: String(row[(cols["is_active"] || 0) - 1] || "").trim().toUpperCase(),
+                    is_author: String(row[(cols["is_author"] || 0) - 1] || "").trim().toUpperCase(),
+                    is_article_reviewer: String(row[(cols["is_article_reviewer"] || 0) - 1] || "").trim().toUpperCase(),
+                    is_publisher: String(row[(cols["is_publisher"] || 0) - 1] || "").trim().toUpperCase(),
+                    is_super_admin: String(row[(cols["is_super_admin"] || 0) - 1] || "").trim().toUpperCase(),
+                    is_out_of_office: String(row[(cols["is_out_of_office"] || 0) - 1] || "").trim().toUpperCase(),
+                    ooo_until: row[(cols["ooo_until"] || 0) - 1] || "",
+                    slack_user_id: String(row[(cols["slack_user_id"] || 0) - 1] || "").trim(),
+                };
+            }
+        }
+        __MEMO["_users_map"] = map;
+    }
+
+    return __MEMO["_users_map"][cleanEmail] || null;
 }
 
 function listPages_() {
