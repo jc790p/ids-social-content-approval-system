@@ -841,13 +841,28 @@
         logDiagnostic('Bootstrap started');
         logDiagnostic(`Client email from localStorage: "${clientEmail}"`);
 
-
         document.getElementById("statusText").innerText = "Checking access...";
 
         logDiagnostic('Calling api_getContext...');
 
+        if (typeof google === "undefined" || !google.script || !google.script.run) {
+            const msg = "Google Apps Script runtime not available. Please open via the published web app.";
+            logDiagnostic(msg, 'error');
+            document.getElementById("authStatus").innerText = msg;
+            document.getElementById("statusText").innerText = msg;
+            return;
+        }
+
+        const bootstrapTimeout = setTimeout(() => {
+            const msg = "Still waiting for access check... please refresh or try again.";
+            logDiagnostic(msg, 'warn');
+            document.getElementById("authStatus").innerText = msg;
+            document.getElementById("statusText").innerText = msg;
+        }, 12000);
+
         google.script.run
             .withSuccessHandler(res => {
+                clearTimeout(bootstrapTimeout);
                 logDiagnostic('Success handler called', 'success');
                 logDiagnostic(`Response received: ${JSON.stringify(res).substring(0, 200)}...`);
 
@@ -942,6 +957,7 @@
                 logDiagnostic('Bootstrap completed successfully!', 'success');
             })
             .withFailureHandler(err => {
+                clearTimeout(bootstrapTimeout);
                 logDiagnostic(`Failure handler called: ${err.message}`, 'error');
                 logDiagnostic(`Error details: ${JSON.stringify(err)}`, 'error');
                 document.getElementById("authStatus").innerText = "Error: " + err.message;
@@ -1314,39 +1330,7 @@
             showHistory: true,
             onConfirm: () => closeActionModal()
         });
-
-        google.script.run
-            .withSuccessHandler(res => {
-                const logs = res.logs || [];
-                const historyArea = document.getElementById("amHistoryArea");
-                if (!historyArea) return;
-
-                if (!logs.length) {
-                    historyArea.innerHTML = "<div style='padding:12px; color:var(--text-muted);'>No history available.</div>";
-                    historyArea.style.display = "block";
-                    return;
-                }
-
-                let html = "";
-                logs.forEach(log => {
-                    html += `<div class="history-item">
-                    <span class="history-actor">${escapeHtml(log.actor_name || log.actor_email)}</span>
-                    <span class="history-date">${log.timestamp}</span>
-                    <div style="margin-top:4px; font-size:12px;">${log.action}: ${log.from_status || ''} → ${log.to_status || ''}</div>
-                    ${log.notes ? `<div style="margin-top:4px; font-size:12px; font-style:italic;">${escapeHtml(log.notes)}</div>` : ''}
-                </div>`;
-                });
-                historyArea.innerHTML = html;
-                historyArea.style.display = "block";
-            })
-            .withFailureHandler(err => {
-                const historyArea = document.getElementById("amHistoryArea");
-                if (historyArea) {
-                    historyArea.innerHTML = `<div style='padding:12px; color:var(--danger);'>Error: ${err.message}</div>`;
-                    historyArea.style.display = "block";
-                }
-            })
-            .api_getHistory({ email: ctx.email, object_type: type, object_id: id });
+        loadHistory(type, id);
     }
 
     // --- GENERIC ACTION MODAL ---
@@ -1378,7 +1362,6 @@
             histTitle.style.display = "block";
             histArea.style.display = "block";
             histArea.innerHTML = "<i>Loading...</i>";
-            showHistory(opts.historyType, opts.historyId);
         } else {
             histTitle.style.display = "none";
             histArea.style.display = "none";
@@ -1469,60 +1452,52 @@
         });
     }
 
-    function showHistory(type, id) {
-        console.log("History requested for:", { type, id });
-        // The new openActionModal already handles setting up history display.
-        // This function is now primarily for fetching and rendering the history content.
+    function loadHistory(type, id) {
         const historyArea = document.getElementById("amHistoryArea");
-        if (historyArea) historyArea.innerHTML = "Loading records..."; // Update loading state
+        if (historyArea) historyArea.innerHTML = "Loading records...";
 
         if (!ctx || !ctx.email) {
-            console.error("showHistory error: Context (ctx.email) is not available yet.");
             if (historyArea) historyArea.innerText = "Error: Context not loaded. Wait or reload.";
             return;
         }
 
         google.script.run
             .withSuccessHandler(res => {
-                console.log("History Response:", res);
-                if (!historyArea) {
-                    console.error("History Error: amHistoryArea element not found in DOM");
-                    return;
-                }
+                if (!historyArea) return;
                 if (!res || !res.ok) {
                     historyArea.innerText = "Error: " + (res ? res.message : "No response from server");
                     return;
                 }
+
                 const logs = res.logs || [];
-                if (logs.length === 0) {
-                    historyArea.innerHTML = "No history found.";
+                if (!logs.length) {
+                    historyArea.innerHTML = "<div style='padding:12px; color:var(--text-muted);'>No history available.</div>";
                     return;
                 }
 
                 let html = "";
-                logs.forEach(l => {
+                logs.forEach(log => {
                     let dateStr = "";
                     try {
-                        if (l.timestamp) {
-                            const dt = new Date(l.timestamp);
-                            dateStr = isNaN(dt.getTime()) ? String(l.timestamp) : dt.toLocaleString();
+                        if (log.timestamp) {
+                            const dt = new Date(log.timestamp);
+                            dateStr = isNaN(dt.getTime()) ? String(log.timestamp) : dt.toLocaleString();
                         }
-                    } catch (e) { dateStr = String(l.timestamp || ""); }
+                    } catch (e) { dateStr = String(log.timestamp || ""); }
 
-                    html += `
-                            <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-                                <div style="font-size: 11px; color: #888;">${dateStr}</div>
-                                <div><span style="font-weight: bold;">${escapeHtml(l.actor_name || l.actor_email)}</span> did <b>${l.action}</b></div>
-                                <div style="font-size:12px; color:#555;">Status: ${l.from_status || 'Start'} &rarr; ${l.to_status}</div>
-                                ${l.notes ? `<div class="card" style="margin:5px 0 0 0; padding:5px; font-size:12px; background:#f9f9f9;">${escapeHtml(l.notes)}</div>` : ''}
-                            </div>
-                        `;
+                    html += `<div class="history-item">
+                    <span class="history-actor">${escapeHtml(log.actor_name || log.actor_email)}</span>
+                    <span class="history-date">${dateStr}</span>
+                    <div style="margin-top:4px; font-size:12px;">${log.action}: ${log.from_status || ''} → ${log.to_status || ''}</div>
+                    ${log.notes ? `<div style="margin-top:4px; font-size:12px; font-style:italic;">${escapeHtml(log.notes)}</div>` : ''}
+                </div>`;
                 });
                 historyArea.innerHTML = html;
             })
             .withFailureHandler(err => {
-                console.error("History google.script.run Failure:", err);
-                if (historyArea) historyArea.innerHTML = `<div style="color:red; padding:10px;">Error: ${escapeHtml(err.message || 'Unknown backend failure')}</div>`;
+                if (historyArea) {
+                    historyArea.innerHTML = `<div style="color:red; padding:10px;">Error: ${escapeHtml(err.message || 'Unknown backend failure')}</div>`;
+                }
             })
             .api_getHistory({ email: ctx.email, object_type: type, object_id: id });
     }
