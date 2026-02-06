@@ -720,7 +720,41 @@
     });
 
     let ctx = null;
-    let clientEmail = localStorage.getItem("portal_email") || "";
+
+    function safeStorageGet(key, fallback = "") {
+        try {
+            if (typeof localStorage === "undefined") return fallback;
+            const value = localStorage.getItem(key);
+            return value === null ? fallback : value;
+        } catch (err) {
+            console.warn("localStorage.getItem failed for", key, err);
+            return fallback;
+        }
+    }
+
+    function safeStorageSet(key, value) {
+        try {
+            if (typeof localStorage === "undefined") return false;
+            localStorage.setItem(key, value);
+            return true;
+        } catch (err) {
+            console.warn("localStorage.setItem failed for", key, err);
+            return false;
+        }
+    }
+
+    function safeStorageRemove(key) {
+        try {
+            if (typeof localStorage === "undefined") return false;
+            localStorage.removeItem(key);
+            return true;
+        } catch (err) {
+            console.warn("localStorage.removeItem failed for", key, err);
+            return false;
+        }
+    }
+
+    let clientEmail = safeStorageGet("portal_email", "");
 
     // Diagnostic Logging
     function logDiagnostic(message, type = 'info') {
@@ -759,15 +793,15 @@
     function setEmail() {
         const e = document.getElementById("emailInput").value.trim().toLowerCase();
         if (!e) return;
-        localStorage.setItem("portal_email", e);
+        safeStorageSet("portal_email", e);
         clientEmail = e;
         bootstrap();
     }
 
     // Initialize Theme
     (function () {
-        const savedTheme = localStorage.getItem('portal_theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = safeStorageGet('portal_theme', '');
+        const prefersDark = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) || false;
         const theme = savedTheme || (prefersDark ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', theme);
         updateThemeIcon(theme);
@@ -777,7 +811,7 @@
         const current = document.documentElement.getAttribute('data-theme');
         const target = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', target);
-        localStorage.setItem('portal_theme', target);
+        safeStorageSet('portal_theme', target);
         updateThemeIcon(target);
     }
 
@@ -789,7 +823,8 @@
             : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
     }
 
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 
     // Adjustable Width Logic
     function toggleWidth() {
@@ -799,11 +834,11 @@
         const mode = isFull ? 'wide' : 'standard';
         // Show what clicking will do NEXT (opposite of current state)
         btnText.innerText = isFull ? 'Standard Width' : 'Wide Width';
-        localStorage.setItem('portal_width', mode);
+        safeStorageSet('portal_width', mode);
     }
 
     (function () {
-        const savedWidth = localStorage.getItem('portal_width');
+        const savedWidth = safeStorageGet('portal_width', '');
         if (savedWidth === 'wide') {
             const container = document.getElementById('mainContainer');
             const btnText = document.getElementById('widthText');
@@ -841,13 +876,28 @@
         logDiagnostic('Bootstrap started');
         logDiagnostic(`Client email from localStorage: "${clientEmail}"`);
 
-
         document.getElementById("statusText").innerText = "Checking access...";
 
         logDiagnostic('Calling api_getContext...');
 
+        if (typeof google === "undefined" || !google.script || !google.script.run) {
+            const msg = "Google Apps Script runtime not available. Please open via the published web app.";
+            logDiagnostic(msg, 'error');
+            document.getElementById("authStatus").innerText = msg;
+            document.getElementById("statusText").innerText = msg;
+            return;
+        }
+
+        const bootstrapTimeout = setTimeout(() => {
+            const msg = "Still waiting for access check... please refresh or try again.";
+            logDiagnostic(msg, 'warn');
+            document.getElementById("authStatus").innerText = msg;
+            document.getElementById("statusText").innerText = msg;
+        }, 12000);
+
         google.script.run
             .withSuccessHandler(res => {
+                clearTimeout(bootstrapTimeout);
                 logDiagnostic('Success handler called', 'success');
                 logDiagnostic(`Response received: ${JSON.stringify(res).substring(0, 200)}...`);
 
@@ -942,6 +992,7 @@
                 logDiagnostic('Bootstrap completed successfully!', 'success');
             })
             .withFailureHandler(err => {
+                clearTimeout(bootstrapTimeout);
                 logDiagnostic(`Failure handler called: ${err.message}`, 'error');
                 logDiagnostic(`Error details: ${JSON.stringify(err)}`, 'error');
                 document.getElementById("authStatus").innerText = "Error: " + err.message;
@@ -955,7 +1006,7 @@
     function logout() {
         closeActionModal();
         closeSubmitArticle();
-        localStorage.removeItem("portal_email");
+        safeStorageRemove("portal_email");
         ctx = null;
         const headerEmail = document.getElementById("headerEmail");
         if (headerEmail) headerEmail.innerText = "";
