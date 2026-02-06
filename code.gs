@@ -417,6 +417,7 @@ function api_listArticles(payload) {
     const email = mustAllow_(payload.email);
     const user = getUserByEmail_(email) || {};
     const isSuperAdmin = user.is_super_admin === "Y";
+    const isReviewer = user.is_article_reviewer === "Y";
 
     const articles = listArticles_({});
     const topics = listTopics_({});
@@ -436,13 +437,10 @@ function api_listArticles(payload) {
 
         // Article Review Queue Logic
         if (a.status === CFG.ARTICLE_STATUSES.UNDER_REVIEW || a.status === CFG.ARTICLE_STATUSES.CHANGES) {
-            if (isSuperAdmin) {
-                queue.push(a);
-                return;
-            }
-
-            // EXCLUDE OWN ARTICLES from review
-            if (a.author_email.toLowerCase() === email.toLowerCase()) {
+            if (isSuperAdmin || isReviewer) {
+                if (a.author_email.toLowerCase() !== email.toLowerCase()) {
+                    queue.push(a);
+                }
                 return;
             }
 
