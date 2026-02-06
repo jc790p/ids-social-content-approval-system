@@ -496,7 +496,7 @@
 
 <div id="mainContainer" class="container">
     <header>
-        <h1>Social Approval Portal</h1>
+        <h1>IDS Social Content Approval Portal</h1>
     </header>
 
     <div id="authCard" class="card">
@@ -584,16 +584,16 @@
     <!-- TAB: REVIEW QUEUE -->
     <div id="reviewQueue" class="tab-content hidden">
         <div class="card" style="border-left: 4px solid var(--warning);">
-            <h3>Review Queues</h3>
+            <h3>Review Queue</h3>
 
             <div id="topicQueueSection">
-                <h4 style="font-family:'Outfit'; margin-bottom:12px;">Topics Waiting approval</h4>
+                <h4 style="font-family:'Outfit'; margin-bottom:12px;">Topics Awaiting Review</h4>
                 <div id="topicQueueTable"></div>
             </div>
 
             <div id="articleQueueSection"
                 style="margin-top:32px; border-top:1px solid var(--border); padding-top:24px;">
-                <h4 style="font-family:'Outfit'; margin-bottom:12px;">Articles Waiting review</h4>
+                <h4 style="font-family:'Outfit'; margin-bottom:12px;">Articles Awaiting Review</h4>
                 <div id="articleQueueTable"></div>
             </div>
         </div>
@@ -701,7 +701,8 @@
             style="background:var(--card-bg); border:1px solid var(--card-border); padding:12px; border-radius:8px; display:flex; align-items:center; gap:12px;">
             <input type="checkbox" id="sa_readyCheck" style="width:20px; height:20px; margin:0;" />
             <label for="sa_readyCheck" style="font-size:13px; font-weight:500; cursor:pointer;">I confirm this
-                article is complete and ready for review.</label>
+                article is complete and ready for review.<span
+                    class="required-star">*</span></label>
         </div>
 
         <div class="row" style="justify-content: flex-end; gap:12px; margin-top:24px;">
@@ -1163,6 +1164,13 @@
                 actions += ` <button class=\"btn-danger\" onclick=\"discardTopic('${t.topic_id}')\">Withdraw</button>`;
             }
 
+            let viewDocLink = "";
+            if (latestA && latestA.content_doc_url) {
+                viewDocLink = ` | <a href=\"${latestA.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a>`;
+            } else if (t.content_doc_url) {
+                viewDocLink = ` | <a href=\"${t.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Outline</a>`;
+            }
+
             html += `<tr>
                         <td><span class=\"pill\">${t.topic_id}</span></td>
                         <td style=\"font-weight:600;\">${escapeHtml(t.topic_title || '')}</td>
@@ -1172,8 +1180,8 @@
                         <td>
                             ${actions}
                             <div style=\"margin-top:8px;\">
-                                <a class=\"action-link\" onclick=\"showHistory('TOPIC', '${t.topic_id}')\">History</a>
-                                ${t.content_doc_url ? ` | <a href=\"${t.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Outline</a>` : ''}
+                                <a class=\"action-link\" onclick=\"openActionModal({title: 'History: TOPIC ' + '${t.topic_id}', label: '', showInput: false, requireComments: false, showHistory: true, historyType: 'TOPIC', historyId: '${t.topic_id}', onConfirm: () => closeActionModal()})\">History</a>
+                                ${viewDocLink}
                             </div>
                         </td>
                     </tr>`;
@@ -1198,7 +1206,7 @@
                             <button class=\"btn-warning\" onclick=\"requestEditTopic('${t.topic_id}')\">Request edit</button>
                             <button class=\"btn-danger\" onclick=\"rejectTopic('${t.topic_id}')\">Reject</button>
                             <div style=\"margin-top:8px;\">
-                                <a class=\"action-link\" onclick=\"showHistory('TOPIC', '${t.topic_id}')\">History</a>
+                                <a class=\"action-link\" onclick=\"openActionModal({title: 'History: TOPIC ' + '${t.topic_id}', label: '', showInput: false, requireComments: false, showHistory: true, historyType: 'TOPIC', historyId: '${t.topic_id}', onConfirm: () => closeActionModal()})\">History</a>
                                 ${t.content_doc_url ? ` | <a href=\"${t.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Outline</a>` : ''}
                                 ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideTopic('${t.topic_id}')\">Override</a>` : ''}
                             </div>
@@ -1237,40 +1245,7 @@
                             ${actions}
                             <div style=\"margin-top:8px;\">
                                 <a href=\"${a.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a> | 
-                                <a class=\"action-link\" onclick=\"showHistory('ARTICLE', '${a.article_id}')\">History</a>
-                                ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideArticle('${a.article_id}')\">Override</a>` : ''}
-                            </div>
-                        </td>
-                    </tr>`;
-        });
-        html += "</tbody></table>";
-        return html;
-    }
-
-
-    function renderArticleQueue(articles) {
-        if (!articles.length) return "<div style='padding:20px; color:var(--text-muted);'>No articles waiting review.</div>";
-        let html = "<table><thead><tr>" +
-            "<th>ID</th><th>Topic</th><th>Page</th><th>Author</th><th>Waiting</th><th>Status</th><th>Actions</th></tr></thead><tbody>";
-        articles.forEach(a => {
-            let actions = "";
-            if (ctx.roles.is_super_admin || (ctx.roles.is_article_reviewer && a.status === CFG.ARTICLE_STATUSES.UNDER_REVIEW)) {
-                actions += `<button class=\"btn-approve\" onclick=\"reviewArticle('${a.article_id}', 'READY')\">Approve</button>
-                           <button class=\"btn-edit\" onclick=\"reviewArticle('${a.article_id}', 'CHANGES')\">Request Edit</button>`;
-            }
-
-            html += `<tr>
-                        <td><span class=\"pill\">${a.article_id}</span></td>
-                        <td style=\"font-weight:600;\">${escapeHtml(a.topic_title || 'Topic ' + a.topic_id)}</td>
-                        <td><span class=\"pill\">${a.page_id}</span></td>
-                        <td>${escapeHtml(a.author_name || a.author_email || '')}</td>
-                        <td>${formatWaitTime(a.submitted_at)}</td>
-                        <td><span class=\"pill\">${a.status}</span></td>
-                        <td>
-                            ${actions}
-                            <div style=\"margin-top:8px;\">
-                                <a href=\"${a.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a> | 
-                                <a class=\"action-link\" onclick=\"showHistory('ARTICLE', '${a.article_id}')\">History</a>
+                                <a class=\"action-link\" onclick=\"openActionModal({title: 'History: ARTICLE ' + '${a.article_id}', label: '', showInput: false, requireComments: false, showHistory: true, historyType: 'ARTICLE', historyId: '${a.article_id}', onConfirm: () => closeActionModal()})\">History</a>
                                 ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideArticle('${a.article_id}')\">Override</a>` : ''}
                             </div>
                         </td>
@@ -1295,7 +1270,7 @@
                             <button class=\"btn-success\" onclick=\"markPosted('${a.article_id}')\">Mark Posted</button>
                             <div style=\"margin-top:8px;\">
                                 <a href=\"${a.content_doc_url}\" target=\"_blank\" class=\"action-link\">View Doc</a> | 
-                                <a class=\"action-link\" onclick=\"showHistory('ARTICLE', '${a.article_id}')\">History</a>
+                                <a class=\"action-link\" onclick=\"openActionModal({title: 'History: ARTICLE ' + '${a.article_id}', label: '', showInput: false, requireComments: false, showHistory: true, historyType: 'ARTICLE', historyId: '${a.article_id}', onConfirm: () => closeActionModal()})\">History</a>
                                 ${ctx.roles.is_super_admin ? ` | <a class=\"action-link\" onclick=\"adminOverrideArticle('${a.article_id}')\">Override</a>` : ''}
                             </div>
                         </td>
@@ -1303,18 +1278,6 @@
         });
         html += "</tbody></table>";
         return html;
-    }
-
-    function showHistory(type, id) {
-        openActionModal({
-            title: `History: ${type} ${id}`,
-            label: "",
-            showInput: false,
-            requireComments: false,
-            showHistory: true,
-            onConfirm: () => closeActionModal()
-        });
-        loadHistory(type, id);
     }
 
     // --- GENERIC ACTION MODAL ---
@@ -1338,6 +1301,8 @@
         cmts.value = "";
         cmts.placeholder = opts.commentPlaceholder || "Enter details here...";
 
+        const cmtLabel = document.querySelector('div[style*="Comments"]') || cmts.previousElementSibling;
+
         document.getElementById("amRequired").style.display = opts.requireComments ? "inline" : "none";
 
         const histArea = document.getElementById("amHistoryArea");
@@ -1346,9 +1311,14 @@
             histTitle.style.display = "block";
             histArea.style.display = "block";
             histArea.innerHTML = "<i>Loading...</i>";
+            cmts.style.display = "none";
+            if (cmtLabel) cmtLabel.style.display = "none";
+            showHistory(opts.historyType, opts.historyId);
         } else {
             histTitle.style.display = "none";
             histArea.style.display = "none";
+            cmts.style.display = "block";
+            if (cmtLabel) cmtLabel.style.display = "block";
         }
 
         m.classList.remove("hidden");
@@ -1436,52 +1406,60 @@
         });
     }
 
-    function loadHistory(type, id) {
+    function showHistory(type, id) {
+        console.log("History requested for:", { type, id });
+        // The new openActionModal already handles setting up history display.
+        // This function is now primarily for fetching and rendering the history content.
         const historyArea = document.getElementById("amHistoryArea");
-        if (historyArea) historyArea.innerHTML = "Loading records...";
+        if (historyArea) historyArea.innerHTML = "Loading records..."; // Update loading state
 
         if (!ctx || !ctx.email) {
+            console.error("showHistory error: Context (ctx.email) is not available yet.");
             if (historyArea) historyArea.innerText = "Error: Context not loaded. Wait or reload.";
             return;
         }
 
         google.script.run
             .withSuccessHandler(res => {
-                if (!historyArea) return;
+                console.log("History Response:", res);
+                if (!historyArea) {
+                    console.error("History Error: amHistoryArea element not found in DOM");
+                    return;
+                }
                 if (!res || !res.ok) {
                     historyArea.innerText = "Error: " + (res ? res.message : "No response from server");
                     return;
                 }
-
                 const logs = res.logs || [];
-                if (!logs.length) {
-                    historyArea.innerHTML = "<div style='padding:12px; color:var(--text-muted);'>No history available.</div>";
+                if (logs.length === 0) {
+                    historyArea.innerHTML = "No history found.";
                     return;
                 }
 
                 let html = "";
-                logs.forEach(log => {
+                logs.forEach(l => {
                     let dateStr = "";
                     try {
-                        if (log.timestamp) {
-                            const dt = new Date(log.timestamp);
-                            dateStr = isNaN(dt.getTime()) ? String(log.timestamp) : dt.toLocaleString();
+                        if (l.timestamp) {
+                            const dt = new Date(l.timestamp);
+                            dateStr = isNaN(dt.getTime()) ? String(l.timestamp) : dt.toLocaleString();
                         }
-                    } catch (e) { dateStr = String(log.timestamp || ""); }
+                    } catch (e) { dateStr = String(l.timestamp || ""); }
 
-                    html += `<div class="history-item">
-                    <span class="history-actor">${escapeHtml(log.actor_name || log.actor_email)}</span>
-                    <span class="history-date">${dateStr}</span>
-                    <div style="margin-top:4px; font-size:12px;">${log.action}: ${log.from_status || ''} → ${log.to_status || ''}</div>
-                    ${log.notes ? `<div style="margin-top:4px; font-size:12px; font-style:italic;">${escapeHtml(log.notes)}</div>` : ''}
-                </div>`;
+                    html += `
+                            <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                                <div style="font-size: 11px; color: #888;">${dateStr}</div>
+                                <div><span style="font-weight: bold;">${escapeHtml(l.actor_name || l.actor_email)}</span> did <b>${l.action}</b></div>
+                                <div style="font-size:12px; color:#555;">Status: ${l.from_status || 'Start'} &rarr; ${l.to_status}</div>
+                                ${l.notes ? `<div class="card" style="margin:5px 0 0 0; padding:5px; font-size:12px; background:#f9f9f9;">${escapeHtml(l.notes)}</div>` : ''}
+                            </div>
+                        `;
                 });
                 historyArea.innerHTML = html;
             })
             .withFailureHandler(err => {
-                if (historyArea) {
-                    historyArea.innerHTML = `<div style="color:red; padding:10px;">Error: ${escapeHtml(err.message || 'Unknown backend failure')}</div>`;
-                }
+                console.error("History google.script.run Failure:", err);
+                if (historyArea) historyArea.innerHTML = `<div style="color:red; padding:10px;">Error: ${escapeHtml(err.message || 'Unknown backend failure')}</div>`;
             })
             .api_getHistory({ email: ctx.email, object_type: type, object_id: id });
     }
